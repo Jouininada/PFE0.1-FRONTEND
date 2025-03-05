@@ -3,7 +3,6 @@ import React from 'react';
 interface ExpenseInvoiceActionsContextProps {
   openDeleteDialog?: () => void;
   openDuplicateDialog?: () => void;
-  openDownloadDialog?: () => void;
   openInvoiceDialog?: () => void;
   searchTerm?: string;
   setSearchTerm?: (value: string) => void;

@@ -26,7 +26,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface ExpenseQuotationDuplicateDialogProps {
   className?: string;
   id: number;
-  sequential: string;
   open: boolean;
   duplicateQuotation: (includeFiles: boolean) => void;
   isDuplicationPending?: boolean;
@@ -36,7 +35,6 @@ interface ExpenseQuotationDuplicateDialogProps {
 export const ExpenseQuotationDuplicateDialog: React.FC<ExpenseQuotationDuplicateDialogProps> = ({
   className,
   id,
-  sequential,
   open,
   duplicateQuotation,
   isDuplicationPending,
@@ -50,7 +48,7 @@ export const ExpenseQuotationDuplicateDialog: React.FC<ExpenseQuotationDuplicate
 
   const header = (
     <Label className="leading-5">
-      Voulez-vous vraiment dupliquer le devis N° <span className="font-semibold">{sequential}</span>{' '}
+      Voulez-vous vraiment dupliquer le devis N°
       ?
     </Label>
   );

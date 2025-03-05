@@ -95,7 +95,7 @@ const baseMenuItems = [
       {
         code: 'payments',
         title: 'Payments',
-        href: '/buying/payments',
+        href: '/buying/expense_payments',
         icon: <Wallet className="h-5 w-5" />
       },
       {

@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/common';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { fromSequentialObjectToString } from '@/utils/string.utils';
 
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -29,7 +28,6 @@ import { useExpenseQuotationArticleManager } from '../hooks/useExpenseQuotationA
 import { EXPENSE_QUOTATION_LIFECYCLE_ACTIONS } from '@/constants/expensequotation.lifecycle';
 import { ExpenseQuotationActionDialog } from '../dialogs/ExpenseQuotationActionDialog';
 import { ExpenseQuotationDuplicateDialog } from '../dialogs/ExpenseQuotationDuplicateDialog';
-import { ExpenseQuotationDownloadDialog } from '../dialogs/ExpenseQuotationDownloadDialog';
 import { ExpenseQuotationDeleteDialog } from '../dialogs/ExpenseQuotationDeleteDialog';
 import { ExpenseQuotationInvoiceDialog } from '../dialogs/ExpenseQuotationInvoiceDialog';
 import { QuotationInvoiceList } from './ExpenseQuotationInvoiceList';
@@ -211,53 +209,6 @@ export const ExpenseQuotationControlSection = ({
       loading: false
     },
     {
-      ...EXPENSE_QUOTATION_LIFECYCLE_ACTIONS.sent,
-      key: 'sent',
-      onClick: () => {
-        setActionName(tCommon('commands.send'));
-        !!handleSubmitSent &&
-          setAction(() => {
-            return () => handleSubmitSent();
-          });
-        setActionDialog(true);
-      },
-      loading: false
-    },
-    {
-      ...EXPENSE_QUOTATION_LIFECYCLE_ACTIONS.accepted,
-      key: 'accepted',
-      onClick: () => {
-        setActionName(tCommon('commands.accept'));
-        !!handleSubmitAccepted &&
-          setAction(() => {
-            return () => handleSubmitAccepted();
-          });
-        setActionDialog(true);
-      },
-      loading: false
-    },
-    {
-      ...EXPENSE_QUOTATION_LIFECYCLE_ACTIONS.rejected,
-      key: 'rejected',
-      onClick: () => {
-        setActionName(tCommon('commands.reject'));
-        !!handleSubmitRejected &&
-          setAction(() => {
-            return () => handleSubmitRejected();
-          });
-        setActionDialog(true);
-      },
-      loading: false
-    },
-    {
-      ...EXPENSE_QUOTATION_LIFECYCLE_ACTIONS.invoiced,
-      key: 'to_invoice',
-      onClick: () => {
-        setInvoiceDialog(true);
-      },
-      loading: false
-    },
-    {
       ...EXPENSE_QUOTATION_LIFECYCLE_ACTIONS.duplicate,
       key: 'duplicate',
       onClick: () => {
@@ -293,7 +244,7 @@ export const ExpenseQuotationControlSection = ({
       loading: false
     }
   ];
-  const sequential = fromSequentialObjectToString(quotationManager.sequentialNumber);
+  const sequential =quotationManager.sequentialNumbr;
   return (
     <>
       <ExpenseQuotationActionDialog
@@ -307,7 +258,6 @@ export const ExpenseQuotationControlSection = ({
       />
       <ExpenseQuotationDuplicateDialog
         id={quotationManager?.id || 0}
-        sequential={sequential}
         open={duplicateDialog}
         duplicateQuotation={(includeFiles: boolean) => {
           quotationManager?.id &&
@@ -319,15 +269,7 @@ export const ExpenseQuotationControlSection = ({
         isDuplicationPending={isDuplicationPending}
         onClose={() => setDuplicateDialog(false)}
       />
-      <ExpenseQuotationDownloadDialog
-        id={quotationManager?.id || 0}
-        open={downloadDialog}
-        downloadQuotation={(template: string) => {
-          quotationManager?.id && downloadQuotation({ id: quotationManager?.id, template });
-        }}
-        isDownloadPending={isDownloadPending}
-        onClose={() => setDownloadDialog(false)}
-      />
+
       <ExpenseQuotationDeleteDialog
         id={quotationManager?.id || 0}
         sequential={sequential}

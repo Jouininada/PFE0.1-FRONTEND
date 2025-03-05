@@ -50,6 +50,11 @@ import { expense_invoice } from './expense_invoice';
 export * from './expense_invoice'
 import { expense_quotation } from './expense-quotation';
 export * from './expense-quotation'
+import { expensepayment } from './expense-payment';
+export * from './expense-payment'
+import { expensepaymentCondition } from './expense-payment-condition';
+export * from './expense-payment-condition'
+
 export * from '../types/response';
 export * from '../types/enums';
 
@@ -79,6 +84,8 @@ export const api = {
   upload,
   user,
   expense_invoice,
-  expense_quotation
+  expense_quotation,
+  expensepayment,
+  expensepaymentCondition
 
 };

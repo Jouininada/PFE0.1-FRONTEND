@@ -2,9 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import {
-  EXPENSQUOTATION_STATUS,
-  InvoiceUploadedFile,
-  QUOTATION_STATUS
+  EXPENSQUOTATION_STATUS
 } from '@/types';
 import { Spinner } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
@@ -203,8 +201,6 @@ export const  ExpenseInvoiceUpdateForm = ({ className, invoiceId }: ExpenseInvoi
     //invoice meta infos
     controlManager.setControls({
       isBankAccountDetailsHidden: !data?.expenseInvoiceMetaData?.hasBankingDetails,
-      isInvoiceAddressHidden: !data?.expenseInvoiceMetaData?.showInvoiceAddress,
-      isDeliveryAddressHidden: !data?.expenseInvoiceMetaData?.showDeliveryAddress,
       isArticleDescriptionHidden: !data?.expenseInvoiceMetaData?.showArticleDescription,
       isGeneralConditionsHidden: !data?.expenseInvoiceMetaData?.hasGeneralConditions,
       isTaxStampHidden: !data?.expenseInvoiceMetaData?.hasTaxStamp,
@@ -302,8 +298,6 @@ export const  ExpenseInvoiceUpdateForm = ({ className, invoiceId }: ExpenseInvoi
       taxStampId: invoiceManager?.taxStampId,
       taxWithholdingId: invoiceManager?.taxWithholdingId,
       expenseInvoiceMetaData: {
-        showDeliveryAddress: !controlManager?.isDeliveryAddressHidden,
-        showInvoiceAddress: !controlManager?.isInvoiceAddressHidden,
         showArticleDescription: !controlManager?.isArticleDescriptionHidden,
         hasBankingDetails: !controlManager.isBankAccountDetailsHidden,
         hasGeneralConditions: !controlManager.isGeneralConditionsHidden,
@@ -337,8 +331,6 @@ export const  ExpenseInvoiceUpdateForm = ({ className, invoiceId }: ExpenseInvoi
                 <ExpenseInvoiceGeneralInformation
                   className="my-5"
                   firms={firms}
-                  isInvoicingAddressHidden={controlManager.isInvoiceAddressHidden}
-                  isDeliveryAddressHidden={controlManager.isDeliveryAddressHidden}
                   edit={editMode}
                   loading={debounceFetching}
                 />
@@ -394,7 +386,8 @@ export const  ExpenseInvoiceUpdateForm = ({ className, invoiceId }: ExpenseInvoi
                   handleSubmit={() => onSubmit(invoiceManager.status)}
                   handleSubmitDraft={() => onSubmit(EXPENSE_INVOICE_STATUS.Draft)}
                   handleSubmitValidated={() => onSubmit(EXPENSE_INVOICE_STATUS.Validated)}
-                  handleSubmitSent={() => onSubmit(EXPENSE_INVOICE_STATUS.Sent)}
+                  handleSubmitExpired={() => onSubmit(EXPENSE_INVOICE_STATUS.Expired)}
+
                   loading={debounceFetching}
                   reset={globalReset}
                   edit={editMode}

@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/common';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { fromSequentialObjectToString } from '@/utils/string.utils';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/utils/errors';
 import { useRouter } from 'next/router';
@@ -35,9 +34,9 @@ import { useExpenseInvoiceArticleManager } from '../hooks/useExpenseInvoiceArtic
 import { useMutation } from '@tanstack/react-query';
 import { ExpenseInvoiceActionDialog } from '../dialogs/ExpenseInvoiceActionDialog';
 import { ExpenseInvoiceDuplicateDialog } from '../dialogs/ExpenseInvoiceDuplicateDialog';
-import { ExpenseInvoiceDownloadDialog } from '../dialogs/ExpenseInvoiceDownloadDialog';
 import { ExpenseInvoiceDeleteDialog } from '../dialogs/ExpenseInvoiceDeleteDialog';
 import { ExpenseInvoicePaymentList } from './ExpenseInvoicePaymentList';
+import { ExpensePaymentInvoiceEntry } from '@/types/expense-payment';
 
 interface ExpenseInvoiceLifecycle {
   label: string;
@@ -59,13 +58,13 @@ interface ExpenseInvoiceControlSectionProps {
   bankAccounts: BankAccount[];
   currencies: Currency[];
   quotations: ExpenseQuotation[];
-  payments?: PaymentInvoiceEntry[];
+  payments?: ExpensePaymentInvoiceEntry[];
   taxWithholdings?: TaxWithholding[];
   handleSubmit?: () => void;
   handleSubmitDraft: () => void;
   handleSubmitValidated: () => void;
-  handleSubmitSent: () => void;
   handleSubmitDuplicate?: () => void;
+  handleSubmitExpired?: () => void;
   reset: () => void;
   loading?: boolean;
   edit?: boolean;
@@ -83,7 +82,6 @@ export const ExpenseInvoiceControlSection = ({
   handleSubmit,
   handleSubmitDraft,
   handleSubmitValidated,
-  handleSubmitSent,
   reset,
   loading,
   edit = true
@@ -103,23 +101,8 @@ export const ExpenseInvoiceControlSection = ({
   const [actionName, setActionName] = React.useState<string>();
   const [action, setAction] = React.useState<() => void>(() => {});
 
-  //download dialog
-  const [downloadDialog, setDownloadDialog] = React.useState(false);
 
-  //Download Invoice
-  const { mutate: downloadInvoice, isPending: isDownloadPending } = useMutation({
-    mutationFn: (data: { id: number; template: string }) =>
-      api.expense_invoice.download(data.id, data.template),
-    onSuccess: () => {
-      toast.success(tInvoicing('expense_invoice.action_download_success'));
-      setDownloadDialog(false);
-    },
-    onError: (error) => {
-      toast.error(
-        getErrorMessage('invoicing', error, tInvoicing('expense_invoice.action_download_failure'))
-      );
-    }
-  });
+
 
   //duplicate dialog
   const [duplicateDialog, setDuplicateDialog] = React.useState(false);
@@ -196,30 +179,11 @@ export const ExpenseInvoiceControlSection = ({
       loading: false
     },
     {
-      ...EXPENSE_INVOICE_LIFECYCLE_ACTIONS.sent,
-      key: 'sent',
-      onClick: () => {
-        setActionName(tCommon('commands.send'));
-        !!handleSubmitSent &&
-          setAction(() => {
-            return () => handleSubmitSent();
-          });
-        setActionDialog(true);
-      },
-      loading: false
-    },
-    {
       ...EXPENSE_INVOICE_LIFECYCLE_ACTIONS.duplicate,
       key: 'duplicate',
       onClick: () => {
         setDuplicateDialog(true);
       },
-      loading: false
-    },
-    {
-      ...EXPENSE_INVOICE_LIFECYCLE_ACTIONS.download,
-      key: 'download',
-      onClick: () => setDownloadDialog(true),
       loading: false
     },
     {
@@ -276,18 +240,9 @@ export const ExpenseInvoiceControlSection = ({
   onClose={() => setDuplicateDialog(false)}
 />
 
-      <ExpenseInvoiceDownloadDialog
+       <ExpenseInvoiceDeleteDialog
         id={invoiceManager?.id || 0}
-        open={downloadDialog}
-        downloadInvoice={(template: string) => {
-          invoiceManager?.id && downloadInvoice({ id: invoiceManager?.id, template });
-        }}
-        isDownloadPending={isDownloadPending}
-        onClose={() => setDownloadDialog(false)}
-      />
-      <ExpenseInvoiceDeleteDialog
-        id={invoiceManager?.id || 0}
-        sequential={fromSequentialObjectToString(invoiceManager?.sequentialNumber)}
+        sequential={invoiceManager?.sequentialNumbr}
         open={deleteDialog}
         deleteInvoice={() => {
           invoiceManager?.id && removeInvoice(invoiceManager?.id);
@@ -295,6 +250,7 @@ export const ExpenseInvoiceControlSection = ({
         isDeletionPending={isDeletePending}
         onClose={() => setDeleteDialog(false)}
       />
+
       <div className={cn(className)}>
         <div className="flex flex-col border-b w-full gap-2 pb-5">
           {/* invoice status */}
@@ -399,10 +355,11 @@ export const ExpenseInvoiceControlSection = ({
         {/* Payment list */}
         {status &&
           [
-            EXPENSE_INVOICE_STATUS.Sent,
             EXPENSE_INVOICE_STATUS.Unpaid,
             EXPENSE_INVOICE_STATUS.Paid,
-            EXPENSE_INVOICE_STATUS.PartiallyPaid
+            EXPENSE_INVOICE_STATUS.PartiallyPaid,
+            EXPENSE_INVOICE_STATUS.Expired
+
           ].includes(status) &&
           payments.length != 0 && (
             <ExpenseInvoicePaymentList className="border-b" payments={payments} currencies={currencies} />

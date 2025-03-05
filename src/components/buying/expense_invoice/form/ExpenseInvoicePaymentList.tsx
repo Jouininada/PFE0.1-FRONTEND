@@ -7,13 +7,14 @@ import {
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Currency, PaymentInvoiceEntry } from '@/types';
+import { ExpensePaymentInvoiceEntry } from '@/types/expense-payment';
 import { ciel } from '@/utils/number.utils';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 interface ExpenseInvoicePaymentListProps {
   className?: string;
-  payments?: PaymentInvoiceEntry[];
+  payments?: ExpensePaymentInvoiceEntry[];
   currencies?: Currency[];
 }
 

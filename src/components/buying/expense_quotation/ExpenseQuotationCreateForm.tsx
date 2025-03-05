@@ -27,7 +27,6 @@ import dinero from 'dinero.js';
 import { createDineroAmountFromFloatWithDynamicCurrency } from '@/utils/money.utils';
 import { useExpenseQuotationArticleManager } from './hooks/useExpenseQuotationArticleManager';
 import { useQuotationControlManager } from './hooks/useExpenseQuotationControlManager';
-import useExpenseQuotationSocket from './hooks/useExpenseQuotationSocket';
 import { ExpenseQuotationGeneralInformation } from './form/ExpenseQuotationGeneralInformation';
 import { ExpenseQuotationArticleManagement } from './form/ExpenseQuotationArticleManagement';
 import { ExpenseQuotationExtraOptions } from './form/ExpenseQuotationExtraOptions';
@@ -97,16 +96,14 @@ export const ExpenseQuotationCreateForm = ({ className, firmId }: ExpenseQuotati
   );
 
   //websocket to listen for server changes related to sequence number
-  const { currentSequence, isQuotationSequencePending } = useExpenseQuotationSocket();
   //handle Sequential Number
   React.useEffect(() => {
-    quotationManager.set('sequentialNumber', currentSequence);
     quotationManager.set(
       'bankAccount',
       bankAccounts.find((a) => a.isMain)
     );
     quotationManager.set('currency', cabinet?.currency);
-  }, [currentSequence]);
+  }, []);
 
   // perform calculations when the financialy Information are changed
   const digitAfterComma = React.useMemo(() => {
@@ -184,7 +181,6 @@ export const ExpenseQuotationCreateForm = ({ className, firmId }: ExpenseQuotati
     isFetchBankAccountsPending ||
     isFetchCurrenciesPending ||
     isFetchDefaultConditionPending ||
-    isQuotationSequencePending;
   !commonReady || !invoicingReady || isCreatePending;
   const { value: debounceLoading } = useDebounce<boolean>(loading, 500);
 
@@ -227,6 +223,8 @@ const onSubmit = (status: EXPENSQUOTATION_STATUS) => {
     date: quotationManager?.date?.toString(),
       dueDate: quotationManager?.dueDate?.toString(),
       object: quotationManager?.object,
+      sequentialNumbr: quotationManager?.sequentialNumbr,
+      sequential:'',
       cabinetId: quotationManager?.firm?.cabinetId,
       firmId: quotationManager?.firm?.id,
       interlocutorId: quotationManager?.interlocutor?.id,

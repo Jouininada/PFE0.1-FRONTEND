@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Currency, Tax, TaxWithholding } from '@/types';
 import { DISCOUNT_TYPE } from '@/types/enums/discount-types';
 import { Input } from '@/components/ui/input';
@@ -39,13 +39,41 @@ export const ExpenseInvoiceFinancialInformation = ({
   taxes,
   taxWithholdings,
   loading,
-  edit = true
+  edit = true,
 }: ExpenseInvoiceFinancialInformationProps) => {
   const { t: tInvoicing } = useTranslation('invoicing');
 
   const invoiceArticleManager = useExpenseInvoiceArticleManager();
   const invoiceManager = useExpenseInvoiceManager();
   const controlManager = useExpenseInvoiceControlManager();
+
+  const isInvoiceExpired = (dueDate: string | undefined): boolean => {
+    if (!dueDate) {
+      console.error("Due Date is undefined or empty.");
+      return false;
+    }
+
+    try {
+      const dueDateObj = new Date(dueDate); // Convertit la chaîne en objet Date
+      const currentDate = new Date();
+      currentDate.setUTCHours(0, 0, 0, 0); // Réinitialise l'heure pour une comparaison précise
+
+      return dueDateObj < currentDate; // Retourne true si la date d'échéance est dépassée
+    } catch (error) {
+      console.error("Error parsing dueDate:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (invoiceManager.dueDate) {
+      const dueDateString = invoiceManager.dueDate.toISOString(); // Convertit en chaîne au format ISO
+      if (isInvoiceExpired(dueDateString) && status !== EXPENSE_INVOICE_STATUS.Expired) {
+        invoiceManager.set('status', EXPENSE_INVOICE_STATUS.Expired);
+        console.log("Invoice status updated to Expired");
+      }
+    }
+  }, [invoiceManager.dueDate, status, invoiceManager]);
 
   const taxWithholdingAmount = React.useMemo(() => {
     if (invoiceManager.taxWithholdingId) {
@@ -193,7 +221,7 @@ export const ExpenseInvoiceFinancialInformation = ({
           </div>
         </div>
       )}
-      {[EXPENSE_INVOICE_STATUS.PartiallyPaid, EXPENSE_INVOICE_STATUS.Unpaid, EXPENSE_INVOICE_STATUS.Sent].includes(
+      {[EXPENSE_INVOICE_STATUS.PartiallyPaid, EXPENSE_INVOICE_STATUS.Unpaid].includes(
         status
       ) && (
         <div>
@@ -215,6 +243,19 @@ export const ExpenseInvoiceFinancialInformation = ({
           </div>
         </div>
       )}
+      {/* Expired status check */}
+      {
+        // Vérification si le statut est "Expired" ou si la date d'échéance est passée
+        (invoiceManager.status === EXPENSE_INVOICE_STATUS.Expired || 
+         (invoiceManager.dueDate && isInvoiceExpired(invoiceManager.dueDate.toISOString()))) && (
+          <div className="flex flex-col w-full mt-2">
+            <div className="flex my-2">
+              <Label className="mr-auto">{tInvoicing('invoice.attributes.status')}</Label>
+              <Label className="ml-auto text-red-500">{tInvoicing('invoice.status.expired')}</Label>
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };

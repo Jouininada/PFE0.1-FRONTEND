@@ -15,6 +15,8 @@ const factory = (): CreateExpensQuotationDto => {
   return {
     date: '',
     dueDate: '',
+    sequential:'',
+    sequentialNumbr:'',
     status: EXPENSQUOTATION_STATUS.Draft,
     generalConditions: '',
     total: 0,
@@ -27,8 +29,6 @@ const factory = (): CreateExpensQuotationDto => {
     notes: '',
     articleQuotationEntries: [],
     expensequotationMetaData: {
-      showDeliveryAddress: true,
-      showInvoiceAddress: true,
       hasBankingDetails: true,
       hasGeneralConditions: true,
       showArticleDescription: true,
@@ -135,8 +135,6 @@ const findOne = async (
     'uploads',
     'invoices',
     'uploads.upload',
-    'firm.deliveryAddress',
-    'firm.invoicingAddress',
     'expensearticleQuotationEntries',
     'firm.interlocutorsToFirm',
     'expensearticleQuotationEntries.article',
@@ -145,7 +143,8 @@ const findOne = async (
   ]
 ): Promise<ExpenseQuotation & { files: ExpensQuotationUploadedFile[] }> => {
   const response = await axios.get<ExpenseQuotation>(`public/expensquotation/${id}?join=${relations.join(',')}`);
-  return { ...response.data, files: await getQuotationUploads(response.data) };
+  console.log("rrrrr",response.data); // Vérifiez ici si les articles sont présents
+    return { ...response.data, files: await getQuotationUploads(response.data) };
 };
 
 const uploadQuotationFiles = async (files: File[]): Promise<number[]> => {

@@ -2,8 +2,6 @@ import { create } from 'zustand';
 
 export type ExpenseInvoiceControlManager = {
   isBankAccountDetailsHidden: boolean;
-  isInvoiceAddressHidden: boolean;
-  isDeliveryAddressHidden: boolean;
   isGeneralConditionsHidden: boolean;
   isArticleDescriptionHidden: boolean;
   isTaxStampHidden: boolean;
@@ -20,8 +18,6 @@ export type ExpenseInvoiceControlManager = {
 
 export const useExpenseInvoiceControlManager = create<ExpenseInvoiceControlManager>()((set, get) => ({
   isBankAccountDetailsHidden: false,
-  isInvoiceAddressHidden: false,
-  isDeliveryAddressHidden: false,
   isGeneralConditionsHidden: false,
   isArticleDescriptionHidden: false,
   isTaxStampHidden: false,
@@ -45,8 +41,6 @@ export const useExpenseInvoiceControlManager = create<ExpenseInvoiceControlManag
   reset: () =>
     set({
       isBankAccountDetailsHidden: false,
-      isInvoiceAddressHidden: false,
-      isDeliveryAddressHidden: false,
       isGeneralConditionsHidden: false,
       isArticleDescriptionHidden: false,
       isTaxStampHidden: false,

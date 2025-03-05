@@ -16,7 +16,6 @@ import { getInvoiceColumns } from './data-table/columns';
 import { useExpenseInvoiceManager } from './hooks/useExpenseInvoiceManager';
 import { ExpenseInvoiceDeleteDialog } from './dialogs/ExpenseInvoiceDeleteDialog';
 import { ExpenseInvoiceDuplicateDialog } from './dialogs/ExpenseInvoiceDuplicateDialog';
-import { ExpenseInvoiceDownloadDialog } from './dialogs/ExpenseInvoiceDownloadDialog';
 import { ExpenseInvoiceActionsContext } from './data-table/ActionsContext';
 
 interface ExpenseInvoiceEmbeddedMainProps {
@@ -143,19 +142,6 @@ export const ExpenseInvoiceEmbeddedMain: React.FC<ExpenseInvoiceEmbeddedMainProp
   });
 
   //Download Invoice
-  const { mutate: downloadInvoice, isPending: isDownloadPending } = useMutation({
-    mutationFn: (data: { id: number; template: string }) =>
-      api.expense_invoice.download(data.id, data.template),
-    onSuccess: () => {
-      toast.success(tInvoicing('expense_invoice.action_download_success'));
-      setDownloadDialog(false);
-    },
-    onError: (error) => {
-      toast.error(
-        getErrorMessage('invoicing', error, tInvoicing('expense_invoice.action_download_failure'))
-      );
-    }
-  });
 
   const isPending = isFetchPending || isDeletePending || paging || resizing || searching || sorting;
 
@@ -191,15 +177,6 @@ export const ExpenseInvoiceEmbeddedMain: React.FC<ExpenseInvoiceEmbeddedMainProp
   onClose={() => setDuplicateDialog(false)}
 />
 
-        <ExpenseInvoiceDownloadDialog
-          id={invoiceManager?.id || 0}
-          open={downloadDialog}
-          downloadInvoice={(template: string) => {
-            invoiceManager?.id && downloadInvoice({ id: invoiceManager?.id, template });
-          }}
-          isDownloadPending={isDownloadPending}
-          onClose={() => setDownloadDialog(false)}
-        />
         <ExpenseInvoiceActionsContext.Provider value={context}>
           <DataTable
             className="flex flex-col flex-1 overflow-hidden p-1"

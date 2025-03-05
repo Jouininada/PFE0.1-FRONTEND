@@ -2,10 +2,10 @@ import { Article } from './article';
 import { Cabinet } from './cabinet';
 import { Currency } from './currency';
 import { DISCOUNT_TYPE } from './enums/discount-types';
+import { ExpensePaymentInvoiceEntry } from './expense-payment';
 import { ExpenseQuotation } from './expensequotation';
 import { Firm } from './firm';
 import { Interlocutor } from './interlocutor';
-import { PaymentInvoiceEntry } from './payment';
 import { PagedResponse } from './response';
 import { DatabaseEntity } from './response/DatabaseEntity';
 import { Tax } from './tax';
@@ -16,7 +16,6 @@ export enum EXPENSE_INVOICE_STATUS {
   Nonexistent = 'expense_invoice.status.non_existent',
   Draft = 'expense_invoice.status.draft',
   Validated = 'expense_invoice.status.validated',
-  Sent = 'expense_invoice.status.sent',
   Paid = 'expense_invoice.status.paid',
   PartiallyPaid = 'expense_invoice.status.partially_paid',
   Unpaid = 'expense_invoice.status.unpaid',
@@ -62,8 +61,6 @@ export interface ExpenseCreateArticleInvoiceEntry
 
 export interface ExpenseInvoiceMetaData extends DatabaseEntity {
   id?: number;
-  showInvoiceAddress?: boolean;
-  showDeliveryAddress?: boolean;
   showArticleDescription?: boolean;
   hasBankingDetails?: boolean;
   hasGeneralConditions?: boolean;
@@ -78,6 +75,7 @@ export interface ExpenseInvoiceUpload extends DatabaseEntity {
   invoice?: ExpenseInvoice;
   uploadId?: number;
   upload?: Upload;
+  filePath?:number;
 }
 
 export interface ExpenseInvoice extends DatabaseEntity {
@@ -111,7 +109,7 @@ export interface ExpenseInvoice extends DatabaseEntity {
   articleExpenseEntries?: ExpenseArticleInvoiceEntry[];
   expenseInvoiceMetaData?: ExpenseInvoiceMetaData;
   uploads?: ExpenseInvoiceUpload[];
-  payments?: PaymentInvoiceEntry[];
+  payments?: ExpensePaymentInvoiceEntry[];
   taxStamp?: Tax;
   taxStampId?: number;
   taxWithholding?: TaxWithholding;
@@ -156,7 +154,3 @@ export interface ExpenseInvoiceUploadedFile {
   file: File;
 }
 
-export interface ExpenseResponseInvoiceRangeDto {
-  next?: ExpenseInvoice;
-  previous?: ExpenseInvoice;
-}

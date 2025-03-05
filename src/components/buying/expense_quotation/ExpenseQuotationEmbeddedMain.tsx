@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { BreadcrumbRoute, useBreadcrumb } from '@/components/layout/BreadcrumbContext';
 import { ExpenseQuotationDeleteDialog } from './dialogs/ExpenseQuotationDeleteDialog';
 import { ExpenseQuotationDuplicateDialog } from './dialogs/ExpenseQuotationDuplicateDialog';
-import { ExpenseQuotationDownloadDialog } from './dialogs/ExpenseQuotationDownloadDialog';
 import { ExpenseQuotationInvoiceDialog } from './dialogs/ExpenseQuotationInvoiceDialog';
 import { ExpenseQuotationActionsContext } from './data-table/ActionsContext';
 import { DataTable } from './data-table/data-table';
@@ -211,7 +210,6 @@ export const QuotationEmbeddedMain: React.FC<ExpenseQuotationEmbeddedMainProps> 
         />
         <ExpenseQuotationDuplicateDialog
           id={quotationManager?.id || 0}
-          sequential={quotationManager?.sequential || ''}
           open={duplicateDialog}
           duplicateQuotation={(includeFiles: boolean) => {
             quotationManager?.id &&
@@ -223,15 +221,7 @@ export const QuotationEmbeddedMain: React.FC<ExpenseQuotationEmbeddedMainProps> 
           isDuplicationPending={isDuplicationPending}
           onClose={() => setDuplicateDialog(false)}
         />
-        <ExpenseQuotationDownloadDialog
-          id={quotationManager?.id || 0}
-          open={downloadDialog}
-          downloadQuotation={(template: string) => {
-            quotationManager?.id && downloadExpenseQuotation({ id: quotationManager?.id, template });
-          }}
-          isDownloadPending={isDownloadPending}
-          onClose={() => setDownloadDialog(false)}
-        />
+        
         <ExpenseQuotationInvoiceDialog
           id={quotationManager?.id || 0}
           status={quotationManager?.status}

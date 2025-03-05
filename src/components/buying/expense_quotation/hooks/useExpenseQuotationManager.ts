@@ -10,20 +10,14 @@ import {
   PaymentCondition,
   QuotationUploadedFile
 } from '@/types';
-import { DATE_FORMAT } from '@/types/enums/date-formats';
 import { DISCOUNT_TYPE } from '@/types/enums/discount-types';
-import { fromStringToSequentialObject } from '@/utils/string.utils';
 import { create } from 'zustand';
 
 type ExpenseQuotationManager = {
   // data
   id?: number;
-  sequentialNumber: {
-    dynamicSequence: DATE_FORMAT;
-    next: number;
-    prefix: string;
-  };
   sequential: string;
+  sequentialNumbr: string;
   date: Date | undefined;
   dueDate: Date | undefined;
   object: string;
@@ -80,12 +74,8 @@ const initialState: Omit<
   'set' | 'reset' | 'setFirm' | 'setInterlocutor' | 'getQuotation' | 'setQuotation'
 > = {
   id: -1,
-  sequentialNumber: {
-    prefix: '',
-    dynamicSequence: DATE_FORMAT.yy_MM,
-    next: 0
-  },
   sequential: '',
+  sequentialNumbr:'',
   date: undefined,
   dueDate: undefined,
   object: '',
@@ -98,7 +88,7 @@ const initialState: Omit<
   bankAccount: api?.bankAccount?.factory() || undefined,
   currency: api?.currency?.factory() || undefined,
   notes: '',
-  status: EXPENSQUOTATION_STATUS.Nonexistent,
+  status: EXPENSQUOTATION_STATUS.Draft,
   generalConditions: '',
   isInterlocutorInFirm: false,
   uploadedFiles: []
@@ -129,24 +119,29 @@ export const useExpenseQuotationManager = create<ExpenseQuotationManager>((set, 
       interlocutor,
       isInterlocutorInFirm: true
     })),
-  set: (name: keyof ExpenseQuotationManager, value: any) => {
-    if (name === 'date' || name === 'dueDate') {
-      const dateValue = typeof value === 'string' ? new Date(value) : value;
-      set((state) => ({
-        ...state,
-        [name]: dateValue
-      }));
-    } else {
-      set((state) => ({
-        ...state,
-        [name]: value
-      }));
-    }
-  },
+    set: (name: keyof ExpenseQuotationManager, value: any) => {
+      set((state) => {
+        const newValue =
+          name === 'date' || name === 'dueDate'
+            ? typeof value === 'string'
+              ? new Date(value)
+              : value
+            : value;
+  
+        if (state[name] === newValue) {
+          return state;
+        }
+  
+        return {
+          ...state,
+          [name]: newValue
+        };
+      });
+    },
   getQuotation: () => {
     const {
       id,
-      sequentialNumber,
+      sequentialNumbr,
       date,
       dueDate,
       object,
@@ -164,7 +159,7 @@ export const useExpenseQuotationManager = create<ExpenseQuotationManager>((set, 
 
     return {
       id,
-      sequentialNumber,
+      sequentialNumbr,
       date,
       dueDate,
       object,
@@ -187,7 +182,7 @@ export const useExpenseQuotationManager = create<ExpenseQuotationManager>((set, 
     set((state) => ({
       ...state,
       id: quotation?.id,
-      sequentialNumber: fromStringToSequentialObject(quotation?.sequential || ''),
+      sequentialNumbr: quotation?.sequentialNumbr,
       date: quotation?.date ? new Date(quotation?.date) : undefined,
       dueDate: quotation?.dueDate ? new Date(quotation?.dueDate) : undefined,
       object: quotation?.object,

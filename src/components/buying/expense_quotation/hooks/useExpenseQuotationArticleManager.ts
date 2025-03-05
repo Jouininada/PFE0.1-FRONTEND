@@ -158,31 +158,21 @@ export const useExpenseQuotationArticleManager = create<ExpenseQuotationArticleM
   },
 
   setArticles: (articles: ExpenseArticleQuotationEntry[]) => {
-    set((state) => {
-      // Calculate the new articles data
-      const updatedArticles = articles.map((article) => {
-        const { subTotal, total } = calculateForExpenseQuotation(article);
-        return { id: uuidv4(), article: { ...article, total, subTotal } };
+      set({
+        articles: articles.map((article) => {
+          const { subTotal, total } = calculateForExpenseQuotation(article);
+          return {
+            id: uuidv4(),
+            article: { ...article, total, subTotal }
+          };
+        })
       });
   
-      // Check if the articles have actually changed before updating the state
-      if (JSON.stringify(state.articles) !== JSON.stringify(updatedArticles)) {
-        // Only update the articles if they have changed
-        set({
-          articles: updatedArticles
-        });
-  
-        // Update tax summary only if articles have changed
-        set(() => ({
-          taxSummary: calculateTaxSummary(updatedArticles)
-        }));
-      }
-  
-      // Return the current state if no changes
-      return state;
-    });
-  },
-
+      const taxSummary = calculateTaxSummary(get().articles);
+      set(() => ({
+        taxSummary
+      }));
+    },
   reset: () =>
     set({
       articles: [],

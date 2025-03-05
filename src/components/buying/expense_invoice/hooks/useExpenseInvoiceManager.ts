@@ -8,18 +8,13 @@ import {
 } from '@/types';
 import { DATE_FORMAT } from '@/types/enums/date-formats';
 import { DISCOUNT_TYPE } from '@/types/enums/discount-types';
+import { ExpensePaymentCondition } from '@/types/expense-payment-condition';
 import { EXPENSE_INVOICE_STATUS, ExpenseInvoice, ExpenseInvoiceUploadedFile } from '@/types/expense_invoices';
-import { fromStringToSequentialObject } from '@/utils/string.utils';
 import { create } from 'zustand';
 
 type ExpenseInvoiceManager = {
   // data
   id?: number;
-  sequentialNumber: {
-    dynamicSequence: DATE_FORMAT;
-    next: number;
-    prefix: string;
-  };
   sequential: string;
   sequentialNumbr:string,
   date: Date | undefined;
@@ -56,7 +51,7 @@ type ExpenseInvoiceManager = {
   reset: () => void;
 };
 
-const getDateRangeAccordingToPaymentConditions = (paymentCondition: PaymentCondition) => {
+const getDateRangeAccordingToPaymentConditions = (paymentCondition: ExpensePaymentCondition) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
@@ -79,11 +74,6 @@ const getDateRangeAccordingToPaymentConditions = (paymentCondition: PaymentCondi
 
 const initialState: Omit<ExpenseInvoiceManager, 'set' | 'reset' | 'setFirm' | 'setInterlocutor' | 'getInvoice' | 'setInvoice'> = {
   id: undefined,
-  sequentialNumber: {
-    prefix: '',
-    dynamicSequence: DATE_FORMAT.yy_MM,
-    next: 0
-  },
   sequential: '',
   sequentialNumbr: '',  // initialisation de sequentialNumbr vide
   date: undefined,
@@ -125,11 +115,7 @@ export const useExpenseInvoiceManager = create<ExpenseInvoiceManager>((set, get)
           : api?.interlocutor?.factory() || undefined,
       isInterlocutorInFirm: !!firm?.interlocutorsToFirm?.length,
       date: dateRange.date,
-      dueDate: dateRange.dueDate,
-      sequentialNumber: {
-        ...state.sequentialNumber,
-        next: state.sequentialNumber.next + 1
-      }
+      dueDate: dateRange.dueDate
     }));
   },
   setInterlocutor: (interlocutor?: Interlocutor) =>
@@ -161,7 +147,6 @@ export const useExpenseInvoiceManager = create<ExpenseInvoiceManager>((set, get)
   getInvoice: () => {
     const {
       id,
-      sequentialNumber,
       sequentialNumbr,  // récupérer la valeur de sequentialNumbr
       date,
       dueDate,
@@ -182,7 +167,6 @@ export const useExpenseInvoiceManager = create<ExpenseInvoiceManager>((set, get)
 
     return {
       id,
-      sequentialNumber,
       sequentialNumbr,  // renvoyer sequentialNumbr
       date,
       dueDate,
@@ -206,10 +190,11 @@ export const useExpenseInvoiceManager = create<ExpenseInvoiceManager>((set, get)
     bankAccounts: BankAccount[]
   ) => {
     set((state) => {
+      // Crée un nouvel état avec les modifications
       const newState = {
         ...state,
         id: invoice?.id,
-        sequentialNumbr: invoice?.sequentialNumbr,  // ici, on attribue la valeur de sequentialNumbr à partir de l'invoice
+        sequentialNumbr: invoice?.sequentialNumbr,
         date: invoice?.date ? new Date(invoice?.date) : undefined,
         dueDate: invoice?.dueDate ? new Date(invoice?.dueDate) : undefined,
         object: invoice?.object,
@@ -229,9 +214,15 @@ export const useExpenseInvoiceManager = create<ExpenseInvoiceManager>((set, get)
         taxWithholdingId: invoice?.taxWithholdingId,
         taxWithholdingAmount: invoice?.taxWithholdingAmount
       };
-      console.log("sequentielNumbr:", invoice.sequentialNumbr);
-      return newState;
-    });
+    
+      // Vérifie si l'état a changé avant de mettre à jour
+      if (JSON.stringify(state) !== JSON.stringify(newState)) {
+        return newState;
+      }
+    
+      // Si l'état est le même, on ne fait pas de mise à jour
+      return state;
+    });    
   },
   reset: () => set({ ...initialState })
 }));

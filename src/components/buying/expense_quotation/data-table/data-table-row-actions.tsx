@@ -12,7 +12,7 @@ import {
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
-import { Copy, Download, FileCheck, Settings2, Telescope, Trash2 } from 'lucide-react';
+import { Copy, FileCheck, Settings2, Telescope, Trash2 } from 'lucide-react';
 import { useExpenseQuotationActions } from './ActionsContext';
 import { useExpenseQuotationManager } from '../hooks/useExpenseQuotationManager';
 
@@ -26,7 +26,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { t: tCommon } = useTranslation('common');
   const router = useRouter();
   const quotationManager = useExpenseQuotationManager();
-  const { openDeleteDialog, openDownloadDialog, openDuplicateDialog, openInvoiceDialog } =
+  const { openDeleteDialog, openDuplicateDialog, openInvoiceDialog } =
     useExpenseQuotationActions();
 
   const targetQuotation = () => {
@@ -53,9 +53,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
         <DropdownMenuItem
           onClick={() => {
             targetQuotation();
-            openDownloadDialog?.();
           }}>
-          <Download className="h-5 w-5 mr-2" /> {tCommon('commands.download')}
         </DropdownMenuItem>
         {/* Duplicate */}
         <DropdownMenuItem

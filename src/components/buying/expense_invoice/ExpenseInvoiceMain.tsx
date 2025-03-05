@@ -13,9 +13,9 @@ import { getInvoiceColumns } from './data-table/columns';
 import { useExpenseInvoiceManager } from './hooks/useExpenseInvoiceManager';
 import { ExpenseInvoiceDeleteDialog } from './dialogs/ExpenseInvoiceDeleteDialog';
 import { ExpenseInvoiceDuplicateDialog } from './dialogs/ExpenseInvoiceDuplicateDialog';
-import { ExpenseInvoiceDownloadDialog } from './dialogs/ExpenseInvoiceDownloadDialog';
 import { ExpenseInvoiceActionsContext } from './data-table/ActionsContext';
 import { ExpenseDuplicateInvoiceDto } from '@/types/expense_invoices';
+import { EXPENSE_INVOICE_STATUS } from '@/types/expense_invoices';
 
 interface ExpenseInvoiceMainProps {
   className?: string;
@@ -79,8 +79,35 @@ export const ExpenseInvoiceMain: React.FC<ExpenseInvoiceMainProps> = ({ classNam
       )
   });
 
+  // Fonction pour vérifier si une facture est expirée
+  const isInvoiceExpired = (dueDate: string | undefined): boolean => {
+    if (!dueDate) {
+      console.error("Due Date is undefined or empty.");
+      return false;
+    }
+
+    try {
+      const dueDateObj = new Date(dueDate); // Convertit la chaîne en objet Date
+      const currentDate = new Date();
+      currentDate.setUTCHours(0, 0, 0, 0); // Réinitialise l'heure pour une comparaison précise
+
+      return dueDateObj < currentDate; // Retourne true si la date d'échéance est dépassée
+    } catch (error) {
+      console.error("Error parsing dueDate:", error);
+      return false;
+    }
+  };
+
+  // Mettre à jour le statut des factures lors de l'affichage
   const invoices = React.useMemo(() => {
-    return invoicesResp?.data || [];
+    if (!invoicesResp?.data) return [];
+
+    return invoicesResp.data.map((invoice) => {
+      if (invoice.dueDate && isInvoiceExpired(invoice.dueDate)) {
+        return { ...invoice, status: EXPENSE_INVOICE_STATUS.Expired }; // Met à jour le statut à "Expired"
+      }
+      return invoice;
+    });
   }, [invoicesResp]);
 
   const context = {
@@ -132,19 +159,6 @@ export const ExpenseInvoiceMain: React.FC<ExpenseInvoiceMainProps> = ({ classNam
   });
 
   //Download Invoice
-  const { mutate: downloadInvoice, isPending: isDownloadPending } = useMutation({
-    mutationFn: (data: { id: number; template: string }) =>
-      api.expense_invoice.download(data.id, data.template),
-    onSuccess: () => {
-      toast.success(tInvoicing('expense_invoice.action_download_success'));
-      setDownloadDialog(false);
-    },
-    onError: (error) => {
-      toast.error(
-        getErrorMessage('invoicing', error, tInvoicing('expense_invoice.action_download_failure'))
-      );
-    }
-  });
 
   const isPending = isFetchPending || isDeletePending || paging || resizing || searching || sorting;
 
@@ -161,30 +175,20 @@ export const ExpenseInvoiceMain: React.FC<ExpenseInvoiceMainProps> = ({ classNam
         isDeletionPending={isDeletePending}
         onClose={() => setDeleteDialog(false)}
       />
-    <ExpenseInvoiceDuplicateDialog
-  id={invoiceManager?.id || 0}
-  open={duplicateDialog}
-  duplicateInvoice={(includeFiles: boolean) => {
-    invoiceManager?.id &&
-      duplicateInvoice({
-        id: invoiceManager?.id,
-        includeFiles: includeFiles
-      });
-  }}
-  isDuplicationPending={isDuplicationPending}
-  onClose={() => setDuplicateDialog(false)}
-/>
-
-
-      <ExpenseInvoiceDownloadDialog
+      <ExpenseInvoiceDuplicateDialog
         id={invoiceManager?.id || 0}
-        open={downloadDialog}
-        downloadInvoice={(template: string) => {
-          invoiceManager?.id && downloadInvoice({ id: invoiceManager?.id, template });
+        open={duplicateDialog}
+        duplicateInvoice={(includeFiles: boolean) => {
+          invoiceManager?.id &&
+            duplicateInvoice({
+              id: invoiceManager?.id,
+              includeFiles: includeFiles
+            });
         }}
-        isDownloadPending={isDownloadPending}
-        onClose={() => setDownloadDialog(false)}
+        isDuplicationPending={isDuplicationPending}
+        onClose={() => setDuplicateDialog(false)}
       />
+
       <ExpenseInvoiceActionsContext.Provider value={context}>
         <Card className={className}>
           <CardHeader>

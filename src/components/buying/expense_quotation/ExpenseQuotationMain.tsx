@@ -14,7 +14,6 @@ import { DuplicateExpensQuotationDto, DuplicateQuotationDto } from '@/types';
 import { useExpenseQuotationManager } from './hooks/useExpenseQuotationManager';
 import { ExpenseQuotationDeleteDialog } from './dialogs/ExpenseQuotationDeleteDialog';
 import { ExpenseQuotationDuplicateDialog } from './dialogs/ExpenseQuotationDuplicateDialog';
-import { ExpenseQuotationDownloadDialog } from './dialogs/ExpenseQuotationDownloadDialog';
 import { ExpenseQuotationInvoiceDialog } from './dialogs/ExpenseQuotationInvoiceDialog';
 import { ExpenseQuotationActionsContext } from './data-table/ActionsContext';
 
@@ -193,7 +192,6 @@ export const ExpenseQuotationMain: React.FC<ExpenseQuotationMainProps> = ({ clas
       />
       <ExpenseQuotationDuplicateDialog
         id={quotationManager?.id || 0}
-        sequential={quotationManager?.sequential || ''}
         open={duplicateDialog}
         duplicateQuotation={(includeFiles: boolean) => {
           quotationManager?.id &&
@@ -204,15 +202,6 @@ export const ExpenseQuotationMain: React.FC<ExpenseQuotationMainProps> = ({ clas
         }}
         isDuplicationPending={isDuplicationPending}
         onClose={() => setDuplicateDialog(false)}
-      />
-      <ExpenseQuotationDownloadDialog
-        id={quotationManager?.id || 0}
-        open={downloadDialog}
-        downloadQuotation={(template: string) => {
-          quotationManager?.id && downloadQuotation({ id: quotationManager?.id, template });
-        }}
-        isDownloadPending={isDownloadPending}
-        onClose={() => setDownloadDialog(false)}
       />
       <ExpenseQuotationInvoiceDialog
         id={quotationManager?.id || 0}

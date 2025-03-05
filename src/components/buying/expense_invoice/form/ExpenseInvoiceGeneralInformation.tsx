@@ -9,9 +9,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { SequenceInput } from '@/components/invoicing-commons/SequenceInput';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { UneditableCalendarDayPicker } from '@/components/ui/uneditable/uneditable-calendar-day-picker';
@@ -19,6 +18,11 @@ import { UneditableInput } from '@/components/ui/uneditable/uneditable-input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useExpenseInvoiceManager } from '../hooks/useExpenseInvoiceManager';
 import { FileUploader } from '@/components/ui/file-uploader';
+import { Card } from '@/components/ui/card';
+import { UploadCloud } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { v4 as uuidv4 } from 'uuid'; // Installer uuid avec npm install uuid
+
 
 interface ExpenseInvoiceGeneralInformationProps {
   className?: string;
@@ -48,7 +52,11 @@ export const ExpenseInvoiceGeneralInformation = ({
       );
       invoiceManager.set('uploadedFiles', [
         ...invoiceManager.uploadedFiles,
-        ...newFiles.map((file) => ({ file }))
+        ...newFiles.map((file) => ({
+          file,
+          filePath: URL.createObjectURL(file),
+          id: uuidv4(), // Ajouter un identifiant unique
+        })),
       ]);
     } else {
       const updatedFiles = invoiceManager.uploadedFiles.filter((uploadedFile) =>
@@ -57,26 +65,119 @@ export const ExpenseInvoiceGeneralInformation = ({
       invoiceManager.set('uploadedFiles', updatedFiles);
     }
   };
+  const compressAndDownloadFile = (file: File) => {
+    if (file.type.startsWith('image')) {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        img.src = reader.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxWidth = 800;
+        const scaleSize = maxWidth / img.width;
+        canvas.width = maxWidth;
+        canvas.height = img.height * scaleSize;
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, { type: file.type });
+            downloadFile(compressedFile);
+          }
+        }, file.type);
+      };
+    } else {
+      downloadFile(file);
+    }
+  };
+
+  const downloadFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+
+  
   return (
     <div className={cn(className)}>
-      {/* Bloc pour télécharger le fichier avant la date */}
       <div className="flex gap-4 pb-5 border-b">
         <div className="w-full">
-          <Label>{tInvoicing('invoice.attributes.files')}</Label>
-          <FileUploader
-            accept={{
-              'image/*': [],
-              'application/pdf': [],
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
-              'application/msword': [],
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
-              'application/vnd.ms-excel': []
-            }}
-            className="my-5"
-            maxFileCount={Infinity}
-            value={invoiceManager.uploadedFiles?.map((d) => d.file)}
-            onValueChange={handleFilesChange}
-          />
+          <Label className="text-lg font-semibold mb-3">{tInvoicing('invoice.attributes.files')}</Label>
+          
+          <Card className="p-4 border-2 border-dashed border-blue-400 bg-gray-50 my-3 rounded-lg">
+            <div className="flex flex-col items-center p-4 bg-white rounded-md border-dashed border-2 border-blue-300">
+              <UploadCloud className="text-blue-500 mb-2" size={36} />
+              <p className="text-gray-300 mb-2 text-sm">
+                {tInvoicing('invoice.attributes.dragAndDrop')}
+              </p>
+              <p className="text-xs text-gray-400">
+                Supported formats: XLS, XLSX, PDF, DOCX, PNG, JPG
+              </p>
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                accept=".xls,.xlsx,.pdf,.docx,.png,.jpg"
+                multiple
+                onChange={(e) => handleFilesChange(Array.from(e.target.files || []))}
+              />
+              <label
+                htmlFor="file-upload"
+                className="text-blue-600 cursor-pointer mt-3 text-sm"
+              >
+                {tCommon('chooseFile')}
+              </label>
+            </div>
+
+            {/* Affichage des fichiers téléchargés avec vignettes et options */}
+            <div className="mt-4 grid grid-cols-1 gap-3">
+              {invoiceManager.uploadedFiles?.map((uploadedFile, index) => {
+                const file = uploadedFile.file;
+                const fileURL = URL.createObjectURL(file);
+
+                return (
+                  <div key={index} className="flex flex-col items-center p-3 border rounded-lg bg-white max-w-[250px]">
+                    <div className="w-full h-20 overflow-hidden mb-2">
+                      {file.type.startsWith('image') ? (
+                        <img src={fileURL} alt={file.name} className="object-cover w-full h-full" />
+                      ) : (
+                        <div className="flex justify-center items-center w-full h-full bg-gray-200 text-gray-500 text-xs">
+                          <p>{file.name.split('.').pop()?.toUpperCase()}</p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-center text-gray-600">{file.name}</p>
+                    <div className="mt-2 flex justify-between gap-1 w-full">
+                      <Button
+                        variant="outline"
+                        className="text-gray-500 border-gray-300 text-xs"
+                        onClick={() => {
+                          const updatedFiles = invoiceManager.uploadedFiles.filter((item) => item.file !== file);
+                          invoiceManager.set('uploadedFiles', updatedFiles);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                      <Button
+                        className="bg-blue-600 text-white text-xs"
+                        onClick={() => compressAndDownloadFile(file)}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
         </div>
       </div>
   
@@ -137,7 +238,7 @@ export const ExpenseInvoiceGeneralInformation = ({
   {edit ? (
     <Input
       className="mt-1"
-      placeholder="Numéro séquentiel"
+      placeholder="Numéro de Facture"
       value={invoiceManager.sequentialNumbr || ''}  // Affichage de la valeur actuelle de sequentialNumbr
       onChange={(e) => {
         const newValue = e.target.value;

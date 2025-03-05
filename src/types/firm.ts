@@ -3,12 +3,12 @@ import { Activity } from './activity';
 import { Address } from './address';
 import { Cabinet } from './cabinet';
 import { Currency } from './currency';
-import { PaymentCondition } from './payment-condition';
 import { SOCIAL_TITLE } from './enums';
 import { PagedResponse } from './response';
-import { Quotation } from './quotation';
-import { Invoice } from './invoice';
 import { DatabaseEntity } from './response/DatabaseEntity';
+import { ExpensePaymentCondition } from './expense-payment-condition';
+import { ExpenseQuotation } from './expensequotation';
+import { ExpenseInvoice } from './expense_invoices';
 
 export interface Firm extends DatabaseEntity {
   id?: number;
@@ -27,12 +27,12 @@ export interface Firm extends DatabaseEntity {
   activityId?: number;
   currency?: Currency;
   currencyId?: number;
-  paymentCondition?: PaymentCondition;
+  paymentCondition?: ExpensePaymentCondition;
   paymentConditionId?: number;
   interlocutorsToFirm?: FirmInterlocutorEntry[];
   notes?: string;
-  quotations?: Quotation[];
-  invoices?: Invoice[];
+  quotations?: ExpenseQuotation[];
+  invoices?: ExpenseInvoice[];
 }
 
 export interface CreateFirmDto

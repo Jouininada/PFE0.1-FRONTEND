@@ -6,7 +6,6 @@ import { DISCOUNT_TYPE } from './enums/discount-types';
 import { ExpenseInvoice } from './expense_invoices';
 import { Firm } from './firm';
 import { Interlocutor } from './interlocutor';
-import { Invoice } from './invoice';
 import { PagedResponse } from './response';
 import { DatabaseEntity } from './response/DatabaseEntity';
 import { Tax } from './tax';
@@ -25,8 +24,6 @@ export enum EXPENSQUOTATION_STATUS {
 
 export interface ExpenseQuotationMetaData extends DatabaseEntity {
   id?: number;
-  showInvoiceAddress?: boolean;
-  showDeliveryAddress?: boolean;
   showArticleDescription?: boolean;
   hasBankingDetails?: boolean;
   hasGeneralConditions?: boolean;
@@ -75,12 +72,14 @@ export interface ExpenseQuotationUpload extends DatabaseEntity {
   expenseQuotationId?: number;  // Linking to `expense_quotation`
   expenseQuotation?: ExpenseQuotation;
   uploadId?: number;
+  pdfFileId?:number;
   upload?: Upload;
 }
 
 export interface ExpenseQuotation extends DatabaseEntity {
   id?: number;
   sequential?: string;
+  sequentialNumbr:string,
   object?: string;
   date?: string;
   dueDate?: string;
@@ -124,6 +123,8 @@ export interface CreateExpensQuotationDto
   > {
   articleQuotationEntries?: CreateExpensArticleQuotationEntry[];  // Article entries
   files?: File[];  // Files to upload
+  sequentialNumbr:string,
+  sequential:string
 }
 
 export interface UpdateExpensQuotationDto extends CreateExpensQuotationDto {

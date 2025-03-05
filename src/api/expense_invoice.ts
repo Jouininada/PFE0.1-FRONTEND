@@ -8,7 +8,7 @@ import {
   ToastValidation,
   UpdateInvoiceSequentialNumber
 } from '@/types';
-import { EXPENSE_INVOICE_STATUS, ExpenseCreateInvoiceDto, ExpenseDuplicateInvoiceDto, ExpenseInvoice, ExpenseInvoiceUploadedFile, ExpensePagedInvoice, ExpenseResponseInvoiceRangeDto, ExpenseUpdateInvoiceDto } from '@/types/expense_invoices';
+import { EXPENSE_INVOICE_STATUS, ExpenseCreateInvoiceDto, ExpenseDuplicateInvoiceDto, ExpenseInvoice, ExpenseInvoiceUploadedFile, ExpensePagedInvoice,ExpenseUpdateInvoiceDto } from '@/types/expense_invoices';
 import { EXPENSE_INVOICE_FILTER_ATTRIBUTES } from '@/constants/expense_invoice.filter-attributes';
 
 const factory = (): ExpenseCreateInvoiceDto => {
@@ -29,8 +29,6 @@ const factory = (): ExpenseCreateInvoiceDto => {
     sequentialNumbr:'',
     articleInvoiceEntries: [],
     expenseInvoiceMetaData: {
-      showDeliveryAddress: true,
-      showInvoiceAddress: true,
       hasBankingDetails: true,
       hasGeneralConditions: true,
       showArticleDescription: true,
@@ -99,12 +97,7 @@ const findOne = async (
   return { ...response.data, files: await getInvoiceUploads(response.data) };
 };
 
-const findByRange = async (id?: number): Promise<ExpenseResponseInvoiceRangeDto> => {
-  const response = await axios.get<ExpenseResponseInvoiceRangeDto>(
-    `public/expenseinvoice/sequential-range/${id}`
-  );
-  return response.data;
-};
+
 
 const uploadInvoiceFiles = async (files: File[]): Promise<number[]> => {
   return files && files?.length > 0 ? await upload.uploadFiles(files) : [];
@@ -115,7 +108,7 @@ const create = async (invoice: ExpenseCreateInvoiceDto, files: File[]): Promise<
   const response = await axios.post<ExpenseInvoice>('public/expenseinvoice', {
     ...invoice,
     uploads: uploadIds.map((id) => {
-      return { uploadId: id };
+      return { uploadId: id,filePath:id};
     })
   });
   return response.data;
@@ -143,21 +136,6 @@ const getInvoiceUploads = async (invoice: ExpenseInvoice): Promise<ExpenseInvoic
     ) as ExpenseInvoiceUploadedFile[];
 };
 
-const download = async (id: number, template: string): Promise<any> => {
-  const invoice = await findOne(id, []);
-  const response = await axios.get<string>(`public/expenseinvoice/${id}/download?template=${template}`, {
-    responseType: 'blob'
-  });
-  const blob = new Blob([response.data], { type: response.headers['content-type'] });
-  const link = document.createElement('a');
-  link.href = window.URL.createObjectURL(blob);
-  link.download = `${invoice.sequential}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  return response;
-};
-
 const duplicate = async (duplicateInvoiceDto: ExpenseDuplicateInvoiceDto): Promise<ExpenseInvoice> => {
   const response = await axios.post<ExpenseInvoice>('public/expenseinvoice/duplicate', duplicateInvoiceDto);
   return response.data;
@@ -170,7 +148,7 @@ const update = async (invoice: ExpenseUpdateInvoiceDto, files: File[]): Promise<
     uploads: [
       ...(invoice.uploads || []),
       ...uploadIds.map((id) => {
-        return { uploadId: id };
+        return { uploadId: id,filePath:id };
       })
     ]
   });
@@ -211,24 +189,14 @@ const validate = (invoice: Partial<ExpenseInvoice>, dateRange?: DateRange): Toas
   return { message: '' };
 };
 
-const updateInvoicesSequentials = async (updatedSequenceDto: UpdateInvoiceSequentialNumber) => {
-  const response = await axios.put<ExpenseInvoice>(
-    `public/expenseinvoice/update-invoice-sequences`,
-    updatedSequenceDto
-  );
-  return response.data;
-};
 
 export const expense_invoice = {
   factory,
   findPaginated,
   findOne,
-  findByRange,
   create,
-  download,
   duplicate,
   update,
-  updateInvoicesSequentials,
   remove,
   validate
 };

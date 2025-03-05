@@ -205,12 +205,10 @@ export const useExpenseInvoiceArticleManager = create<ExpenseInvoiceArticleManag
   },
   removeArticleDescription: () => {
     set((state) => ({
-      articles: state.articles.map((item) => {
-        return {
-          ...item,
-          article: { ...item.article, article: { ...item.article.article, description: '' } }
-        };
-      })
+      articles: state.articles.map((item) => ({
+        ...item,
+        article: { ...item.article, description: '' } // Suppression correcte de la description
+      }))
     }));
-  }
+  }  
 }));

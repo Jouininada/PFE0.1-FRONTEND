@@ -27,7 +27,6 @@ import { createDineroAmountFromFloatWithDynamicCurrency } from '@/utils/money.ut
 import { useExpenseInvoiceManager } from './hooks/useExpenseInvoiceManager';
 import { useExpenseInvoiceArticleManager } from './hooks/useExpenseInvoiceArticleManager';
 import { useExpenseInvoiceControlManager } from './hooks/useExpenseInvoiceControlManager';
-import useExpenseInvoiceSocket from './hooks/useExpenseInvoiceSocket';
 import { EXPENSE_INVOICE_STATUS, ExpenseArticleInvoiceEntry, ExpenseCreateInvoiceDto } from '@/types/expense_invoices';
 import { useDebounce } from '@/hooks/other/useDebounce';
 import { ExpenseInvoiceGeneralInformation } from './form/ExpenseInvoiceGeneralInformation';
@@ -93,16 +92,13 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
   const { taxWithholdings, isFetchTaxWithholdingsPending } = useTaxWithholding();
   const { dateRange, isFetchInvoiceRangePending } = useInvoiceRangeDates(invoiceManager.id);
 
-  const { currentSequence, isInvoiceSequencePending } = useExpenseInvoiceSocket();
 
   // Handle Sequential Number
   React.useEffect(() => {
-    if (!invoiceManager.sequentialNumbr && currentSequence) {
-      invoiceManager.set('sequentialNumbr', currentSequence);  // Mettre à jour seulement si non défini
-    }
+  
     invoiceManager.set('bankAccount', bankAccounts.find((a) => a.isMain));
     invoiceManager.set('currency', cabinet?.currency);
-  }, [currentSequence, bankAccounts, cabinet]);
+  }, [bankAccounts, cabinet]);
 
   const digitAfterComma = React.useMemo(() => {
     return invoiceManager.currency?.digitAfterComma || 3;
@@ -207,7 +203,8 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
       date: invoiceManager?.date?.toString(),
       dueDate: invoiceManager?.dueDate?.toString(),
       object: invoiceManager?.object,
-      sequentialNumbr: invoiceManager?.sequentialNumbr,  // Assurez-vous que sequentialNumbr est bien défini ici
+      sequentialNumbr: invoiceManager?.sequentialNumbr,
+      sequential:'',  // Assurez-vous que sequentialNumbr est bien défini ici
       cabinetId: invoiceManager?.firm?.cabinetId,
       firmId: invoiceManager?.firm?.id,
       interlocutorId: invoiceManager?.interlocutor?.id,
@@ -223,8 +220,6 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
       taxStampId: invoiceManager?.taxStampId,
       taxWithholdingId: invoiceManager?.taxWithholdingId,
       expenseInvoiceMetaData: {
-        showDeliveryAddress: !controlManager?.isDeliveryAddressHidden,
-        showInvoiceAddress: !controlManager?.isInvoiceAddressHidden,
         showArticleDescription: !controlManager?.isArticleDescriptionHidden,
         hasBankingDetails: !controlManager.isBankAccountDetailsHidden,
         hasGeneralConditions: !controlManager.isGeneralConditionsHidden,
@@ -258,9 +253,7 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
                 <ExpenseInvoiceGeneralInformation
                   className="my-5"
                   firms={firms}
-                  isInvoicingAddressHidden={controlManager.isInvoiceAddressHidden}
-                  isDeliveryAddressHidden={controlManager.isDeliveryAddressHidden}
-                  loading={isFetchFirmsPending || isInvoiceSequencePending}
+                  loading={isFetchFirmsPending}
                 />
                 {/* Article Management */}
                 <ExpenseInvoiceArticleManagement
@@ -269,7 +262,7 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
                   isArticleDescriptionHidden={controlManager.isArticleDescriptionHidden}
                 />
                 {/* File Upload & Notes */}
-                <ExpenseInvoiceExtraOptions />
+                  <ExpenseInvoiceExtraOptions />
                 {/* Other Information */}
                 <div className="flex gap-10 mt-5">
                   <ExpenseInvoiceGeneralConditions
@@ -278,6 +271,8 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
                     hidden={controlManager.isGeneralConditionsHidden}
                     defaultCondition={defaultCondition}
                   />
+
+                  
                   <div className="w-1/3 my-auto">
                     {/* Final Financial Information */}
                     <ExpenseInvoiceFinancialInformation
@@ -306,7 +301,6 @@ export const ExpenseInvoiceCreateForm = ({ className, firmId }: ExpenseInvoiceFo
                   taxWithholdings={taxWithholdings}
                   handleSubmitDraft={() => onSubmit(EXPENSE_INVOICE_STATUS.Draft)}
                   handleSubmitValidated={() => onSubmit(EXPENSE_INVOICE_STATUS.Validated)}
-                  handleSubmitSent={() => onSubmit(EXPENSE_INVOICE_STATUS.Sent)}
                   reset={globalReset}
                   loading={debounceLoading}
                 />

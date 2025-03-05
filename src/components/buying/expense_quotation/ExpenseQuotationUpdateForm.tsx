@@ -190,6 +190,9 @@ const setQuotationData = (data: Partial<ExpenseQuotation & { files: ExpensQuotat
 
   // Mise à jour des articles
   articleManager.setArticles(articles);
+  console.log("Articles reçus du backend:", articles);
+articleManager.setArticles(articles);
+
 };
 
 
@@ -213,14 +216,19 @@ const setQuotationData = (data: Partial<ExpenseQuotation & { files: ExpensQuotat
     },
     loading: fetching
   });
-  console.log("122222",articleManager.getArticles());
-
+  
+  console.log("Articles après mise à jour:", articleManager.getArticles());
+  console.log("122222", articleManager.getArticles());
+  
   //update quotation mutator
   const { mutate: updateQuotation, isPending: isUpdatingPending } = useMutation({
-    mutationFn: (data: { quotation: UpdateExpensQuotationDto; files: File[] }) =>
-      api.expense_quotation.update(data.quotation, data.files),
+    mutationFn: (data: { quotation: UpdateExpensQuotationDto; files: File[] }) => {
+      console.log("Données envoyées au backend:", data.quotation);
+      console.log("Données envoyées au backend222:", data);
+      return api.expense_quotation.update(data.quotation, data.files);
+    },
     onSuccess: (data) => {
-      if (data.status == EXPENSQUOTATION_STATUS.Invoiced) {
+      if (data.status === EXPENSQUOTATION_STATUS.Invoiced) {
         toast.success('Devis facturé avec succès');
         // router.push(`/Buying/invoice/${data.invoiceId}`);
       } else {
@@ -233,6 +241,7 @@ const setQuotationData = (data: Partial<ExpenseQuotation & { files: ExpensQuotat
       toast.error(message);
     }
   });
+  
 
   //update handler
   const onSubmit = (status: EXPENSQUOTATION_STATUS) => {
@@ -254,6 +263,8 @@ console.log("article recupere",articleManager.getArticles())
       id: quotationManager?.id,
       date: quotationManager?.date?.toString(),
       dueDate: quotationManager?.dueDate?.toString(),
+      sequentialNumbr: quotationManager?.sequentialNumbr,
+      sequential:'',
       object: quotationManager?.object,
       cabinetId: quotationManager?.firm?.cabinetId,
       firmId: quotationManager?.firm?.id,

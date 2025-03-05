@@ -43,6 +43,7 @@ export enum EVENT_TYPE {
   SELLING_PAYMENT_UPDATED = 'payment_updated',
   SELLING_PAYMENT_DELETED = 'payment_deleted',
 
+
   //Content
   ACTIVITY_CREATED = 'activity_created',
   ACTIVITY_UPDATED = 'activity_updated',
