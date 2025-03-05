@@ -5,7 +5,7 @@
 "00-zc-invoice@file:.":
   version "0.20.0-T"
   dependencies:
-    "00-zc-invoice" "file:C:/Users/extra/AppData/Local/Yarn/Cache/v6/npm-00-zc-invoice-0.20.0-T-e17e0e49-4c41-4d5b-a981-78466e736ccc-1741030520641/node_modules/00-zc-invoice"
+    "00-zc-invoice" "file:../../AppData/Local/Yarn/Cache/v6/npm-00-zc-invoice-0.20.0-T-8249aae4-73e6-4f94-bb6a-95035c0d6b73-1741200846124/node_modules/00-zc-invoice"
     "@dnd-kit/core" "^6.1.0"
     "@dnd-kit/modifiers" "^7.0.0"
     "@dnd-kit/sortable" "^8.0.0"
@@ -3929,7 +3929,7 @@ qs@~6.5.2:
 
 quagga@^0.12.1:
   version "0.12.1"
-  resolved "https://registry.npmjs.org/quagga/-/quagga-0.12.1.tgz#6f48c56ed992dc5fdeb90dbee7069c2e1cdde8b7"
+  resolved "https://registry.yarnpkg.com/quagga/-/quagga-0.12.1.tgz#6f48c56ed992dc5fdeb90dbee7069c2e1cdde8b7"
   integrity sha512-bb2N6eT7ss6Bg27sxQgv/CT96KQBkXa+4YeS1W8bhsaXxoWp8zOQbrOwFWEPxPDTNaWEl7hTs3ZB7OC4k3EY3Q==
   dependencies:
     get-pixels "^3.2.3"

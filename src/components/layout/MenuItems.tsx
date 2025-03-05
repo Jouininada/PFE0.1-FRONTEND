@@ -101,7 +101,7 @@ const baseMenuItems = [
       {
         code: 'withholding',
         title: 'Tax Withholding',
-        href: '/buying/withholding',
+        href: '/buying/withholdings',
         icon: <Magnet className="h-5 w-5" />
       }
     ]

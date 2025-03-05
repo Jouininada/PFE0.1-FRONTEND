@@ -13,6 +13,7 @@ const CreateArticle: React.FC = () => {
     purchasePrice: 0,
     salePrice: 0,
     quantityInStock: 0,
+    barcode: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -4,7 +4,6 @@ import {
   Currency,
   Firm,
   Interlocutor,
-  PaymentCondition
 } from '@/types';
 import { DATE_FORMAT } from '@/types/enums/date-formats';
 import { DISCOUNT_TYPE } from '@/types/enums/discount-types';

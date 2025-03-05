@@ -50,12 +50,13 @@ export const ExpenseInvoiceGeneralInformation = ({
       const newFiles = files.filter(
         (file) => !invoiceManager.uploadedFiles.some((uploadedFile) => uploadedFile.file === file)
       );
+  
       invoiceManager.set('uploadedFiles', [
         ...invoiceManager.uploadedFiles,
         ...newFiles.map((file) => ({
           file,
-          filePath: URL.createObjectURL(file),
-          id: uuidv4(), // Ajouter un identifiant unique
+          filePath: generateFilePathId(), // Génère filePath
+          uploadId: generateUploadId(),    // Génère uploadId (même si non utilisé ici)
         })),
       ]);
     } else {
@@ -65,6 +66,16 @@ export const ExpenseInvoiceGeneralInformation = ({
       invoiceManager.set('uploadedFiles', updatedFiles);
     }
   };
+
+// Fonction pour générer un ID pour uploadId
+const generateUploadId = (): number => {
+  return Math.floor(Math.random() * 1000000); // Exemple : génère un nombre aléatoire
+};
+
+// Fonction pour générer un identifiant pour filePath
+const generateFilePathId = (): number => {
+  return Math.floor(Math.random() * 1000000); // Exemple : génère un nombre aléatoire
+};
   const compressAndDownloadFile = (file: File) => {
     if (file.type.startsWith('image')) {
       const img = new Image();

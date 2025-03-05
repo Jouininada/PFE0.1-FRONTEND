@@ -27,9 +27,14 @@ export const ExpenseInvoiceExtraOptions = ({ className, loading }: ExpenseInvoic
       const newFiles = files.filter(
         (file) => !invoiceManager.uploadedFiles.some((uploadedFile) => uploadedFile.file === file)
       );
+  
       invoiceManager.set('uploadedFiles', [
         ...invoiceManager.uploadedFiles,
-        ...newFiles.map((file) => ({ file }))
+        ...newFiles.map((file) => ({
+          file,
+          uploadId: generateUploadId(), // Génère uploadId
+          filePath: generateFilePathId(), // Génère filePath (même si non utilisé ici)
+        })),
       ]);
     } else {
       const updatedFiles = invoiceManager.uploadedFiles.filter((uploadedFile) =>
@@ -37,6 +42,14 @@ export const ExpenseInvoiceExtraOptions = ({ className, loading }: ExpenseInvoic
       );
       invoiceManager.set('uploadedFiles', updatedFiles);
     }
+  };
+  const generateUploadId = (): number => {
+    return Math.floor(Math.random() * 1000000); // Exemple : génère un nombre aléatoire
+  };
+  
+  // Fonction pour générer un identifiant pour filePath
+  const generateFilePathId = (): number => {
+    return Math.floor(Math.random() * 1000000); // Exemple : génère un nombre aléatoire
   };
 
   return (
@@ -49,20 +62,20 @@ export const ExpenseInvoiceExtraOptions = ({ className, loading }: ExpenseInvoic
           </div>
         </AccordionTrigger>
         <AccordionContent className="m-5">
-          <FileUploader
-            accept={{
-              'image/*': [],
-              'application/pdf': [],
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
-              'application/msword': [],
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
-              'application/vnd.ms-excel': []
-            }}
-            className="my-5"
-            maxFileCount={Infinity}
-            value={invoiceManager.uploadedFiles?.map((d) => d.file)}
-            onValueChange={handleFilesChange}
-          />
+        <FileUploader
+  accept={{
+    'image/*': [],
+    'application/pdf': [],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
+    'application/msword': [],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
+    'application/vnd.ms-excel': []
+  }}
+  className="my-5"
+  maxFileCount={Infinity}
+  value={invoiceManager.uploadedFiles?.map((d) => d.file)}
+  onValueChange={handleFilesChange}
+/>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">
