@@ -67,116 +67,84 @@ export const ExpensePaymentControlSection = ({
         {/* Ajouter la calculatrice ici */}
         <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">{tCommon('calculator.title')}</h2>
-          <div className="p-4 border rounded-lg shadow-md bg-white">
+          <div className="p-3 border rounded-lg shadow-sm bg-white w-48">
             {/* Affichage de l'entrée et du résultat */}
-            <div className="mb-4">
-              <div className="text-right text-gray-700 text-2xl p-2 border rounded bg-gray-100">
+            <div className="mb-3">
+              <div className="text-right text-gray-700 text-lg p-1 border rounded bg-gray-100">
                 {calculatorInput || '0'}
               </div>
-              <div className="text-right text-gray-900 text-3xl font-bold p-2">
+              <div className="text-right text-gray-900 text-xl font-bold p-1">
                 {calculatorResult || '0'}
               </div>
             </div>
 
             {/* Boutons de la calculatrice (disposition horizontale) */}
-            <div className="grid grid-cols-4 gap-2">
-              {/* Ligne 1 : Mémoire */}
-              {['MC', 'MR', 'M+', 'M-'].map((button) => (
+            <div className="grid grid-cols-4 gap-1">
+              {['C', '←', '%', '/'].map((button) => (
                 <button
                   key={button}
                   onClick={() => handleCalculatorButtonClick(button)}
                   className={`
-                    p-4 text-xl font-bold rounded-lg
-                    bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all
+                    p-1 text-sm font-medium rounded-md
+                    ${button === 'C' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700'}
+                    hover:bg-gray-200 transition-all
                   `}
                 >
                   {button}
                 </button>
               ))}
 
-              {/* Ligne 2 : Opérations spéciales */}
-              {['%', 'CE', 'C', '←'].map((button) => (
-                <button
-                  key={button}
-                  onClick={() => handleCalculatorButtonClick(button)}
-                  className={`
-                    p-4 text-xl font-bold rounded-lg
-                    ${button === 'C' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}
-                    hover:bg-gray-300 transition-all
-                  `}
-                >
-                  {button}
-                </button>
-              ))}
-
-              {/* Ligne 3 : Opérations mathématiques */}
-              {['1/x', 'x²', '√x', '+'].map((button) => (
-                <button
-                  key={button}
-                  onClick={() => handleCalculatorButtonClick(button)}
-                  className={`
-                    p-4 text-xl font-bold rounded-lg
-                    bg-blue-500 text-white hover:bg-blue-600 transition-all
-                  `}
-                >
-                  {button}
-                </button>
-              ))}
-
-              {/* Ligne 4 : Chiffres et opérations */}
               {['7', '8', '9', '×'].map((button) => (
                 <button
                   key={button}
                   onClick={() => handleCalculatorButtonClick(button)}
                   className={`
-                    p-4 text-xl font-bold rounded-lg
-                    ${button === '×' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}
-                    hover:bg-gray-300 transition-all
+                    p-1 text-sm font-medium rounded-md
+                    ${button === '×' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}
+                    hover:bg-gray-200 transition-all
                   `}
                 >
                   {button}
                 </button>
               ))}
 
-              {/* Ligne 5 : Chiffres et opérations */}
               {['4', '5', '6', '-'].map((button) => (
                 <button
                   key={button}
                   onClick={() => handleCalculatorButtonClick(button)}
                   className={`
-                    p-4 text-xl font-bold rounded-lg
-                    ${button === '-' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}
-                    hover:bg-gray-300 transition-all
+                    p-1 text-sm font-medium rounded-md
+                    ${button === '-' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}
+                    hover:bg-gray-200 transition-all
                   `}
                 >
                   {button}
                 </button>
               ))}
 
-              {/* Ligne 6 : Chiffres et opérations */}
               {['1', '2', '3', '+'].map((button) => (
                 <button
                   key={button}
                   onClick={() => handleCalculatorButtonClick(button)}
                   className={`
-                    p-4 text-xl font-bold rounded-lg
-                    ${button === '+' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}
-                    hover:bg-gray-300 transition-all
+                    p-1 text-sm font-medium rounded-md
+                    ${button === '+' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}
+                    hover:bg-gray-200 transition-all
                   `}
                 >
                   {button}
                 </button>
               ))}
 
-              {/* Ligne 7 : Dernière ligne */}
-              {['+/-', '0', '.', '='].map((button) => (
+              {['0', '.', '='].map((button) => (
                 <button
                   key={button}
                   onClick={() => handleCalculatorButtonClick(button)}
                   className={`
-                    p-4 text-xl font-bold rounded-lg
-                    ${button === '=' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}
-                    hover:bg-gray-300 transition-all
+                    p-1 text-sm font-medium rounded-md
+                    ${button === '=' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}
+                    hover:bg-gray-200 transition-all
+                    ${button === '0' ? 'col-span-2' : ''}
                   `}
                 >
                   {button}
