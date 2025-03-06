@@ -2,8 +2,18 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { article } from '@/api';
 import { CreateArticleDto } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 const CreateArticle: React.FC = () => {
+  const { t } = useTranslation('common');
+  const router = useRouter();
   const [formData, setFormData] = useState<CreateArticleDto>({
     title: '',
     description: '',
@@ -13,188 +23,187 @@ const CreateArticle: React.FC = () => {
     purchasePrice: 0,
     salePrice: 0,
     quantityInStock: 0,
+<<<<<<< HEAD
     barcode: ''
+=======
+    barcode: '', // Assurez-vous que ce champ est inclus
+>>>>>>> e900753d39b6f59001fab125aaf891fa2d05a589
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [qrCode, setQrCode] = useState<string | null>(null); // Pour stocker le code QR généré
-  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]: name === 'purchasePrice' || name === 'salePrice' || name === 'quantityInStock' ? Number(value) : value,
+    });
   };
 
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: Number(value) });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-    setError(null);
-
     try {
-      // Générer le code QR avant de créer l'article
-      const qrCodeData = JSON.stringify({
-        sku: formData.sku,
-        title: formData.title,
-        price: formData.salePrice,
-      });
-      const generatedQrCode = await article.generateQrCode(qrCodeData);
-      setQrCode(generatedQrCode);
-
-      // Ajouter le code QR à l'article
-      const articleWithQrCode = { ...formData, qrCode: generatedQrCode };
-
-      // Vérifier si un article avec le même titre existe déjà
-      const response = await article.createWithFilterTitle(articleWithQrCode);
-
-      if (response === null) {
-        setError('Un article avec ce titre existe déjà.');
+      console.log('Données envoyées au serveur :', formData); // Debugging
+      const result = await article.createWithFilterTitle(formData);
+      if (result) {
+        toast.success('Article créé avec succès');
+        router.push('/articles');
       } else {
-        router.push('/article/article-Lists');
+        toast.error('Un article avec ce titre existe déjà');
       }
     } catch (error) {
-      setError("Échec de la création de l'article. Veuillez réessayer.");
+      console.error('Erreur lors de la création de l\'article :', error); // Debugging
+      setError('Erreur lors de la création de l\'article');
+      toast.error('Erreur lors de la création de l\'article');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleReset = () => {
+    setFormData({
+      title: '',
+      description: '',
+      sku: '',
+      category: '',
+      subCategory: '',
+      purchasePrice: 0,
+      salePrice: 0,
+      quantityInStock: 0,
+      barcode: '', // Réinitialisez ce champ
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Créer un nouvel article</h1>
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Titre */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
+    <div className={cn('overflow-auto px-10 py-6')}>
+      {/* Conteneur principal */}
+      <div className={cn('block xl:flex gap-4')}>
+        {/* Première carte (Formulaire) */}
+        <div className="w-full h-auto flex flex-col xl:w-9/12">
+          <ScrollArea className="max-h-[calc(100vh-120px)] border rounded-lg">
+            <Card className="border-0 p-2">
+              <CardContent className="p-5">
+                {/* Titre de la section */}
+                <h2 className="text-xl font-bold mb-5">Créer un article</h2>
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
-          </div>
+                {/* Informations générales */}
+                <div className="pb-5 border-b">
+                  <label className="block mb-2 font-medium">Titre de l'article</label>
+                  <Input
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Titre de l'article"
+                    className="mb-3"
+                  />
 
-          {/* SKU et Catégorie */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">SKU</label>
-              <input
-                type="text"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
+                  <label className="block mb-2 font-medium">Description de l'article</label>
+                  <Textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Description de l'article"
+                    className="mb-3"
+                    rows={4}
+                  />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-              <input
-                type="text"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
-          </div>
+                  <label className="block mb-2 font-medium">SKU</label>
+                  <Input
+                    name="sku"
+                    value={formData.sku}
+                    onChange={handleChange}
+                    placeholder="SKU"
+                    className="mb-3"
+                  />
 
-          {/* Sous-catégorie et Prix d'achat */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sous-catégorie</label>
-              <input
-                type="text"
-                name="subCategory"
-                value={formData.subCategory}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
+                  <label className="block mb-2 font-medium">Catégorie</label>
+                  <Input
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    placeholder="Catégorie"
+                    className="mb-3"
+                  />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Prix d'achat</label>
-              <input
-                type="number"
-                name="purchasePrice"
-                value={formData.purchasePrice}
-                onChange={handleNumberChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
-          </div>
+                  <label className="block mb-2 font-medium">Sous-catégorie</label>
+                  <Input
+                    name="subCategory"
+                    value={formData.subCategory}
+                    onChange={handleChange}
+                    placeholder="Sous-catégorie"
+                    className="mb-3"
+                  />
 
-          {/* Prix de vente et Quantité en stock */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Prix de vente</label>
-              <input
-                type="number"
-                name="salePrice"
-                value={formData.salePrice}
-                onChange={handleNumberChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
+                  <label className="block mb-2 font-medium">Prix d'achat</label>
+                  <Input
+                    name="purchasePrice"
+                    type="number"
+                    value={formData.purchasePrice}
+                    onChange={handleChange}
+                    placeholder="Prix d'achat"
+                    className="mb-3"
+                  />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Quantité en stock</label>
-              <input
-                type="number"
-                name="quantityInStock"
-                value={formData.quantityInStock}
-                onChange={handleNumberChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
-                required
-              />
-            </div>
-          </div>
+                  <label className="block mb-2 font-medium">Prix de vente</label>
+                  <Input
+                    name="salePrice"
+                    type="number"
+                    value={formData.salePrice}
+                    onChange={handleChange}
+                    placeholder="Prix de vente"
+                    className="mb-3"
+                  />
 
-          {/* Code QR généré */}
-          {qrCode && (
-            <div className="flex justify-center mt-6">
-              <img src={qrCode} alt="Code QR" className="w-48 h-48" />
-            </div>
-          )}
+                  <label className="block mb-2 font-medium">Quantité en stock</label>
+                  <Input
+                    name="quantityInStock"
+                    type="number"
+                    value={formData.quantityInStock}
+                    onChange={handleChange}
+                    placeholder="Quantité en stock"
+                    className="mb-3"
+                  />
 
-          {/* Bouton de soumission */}
-          <div className="mt-6">
-            <button
-              type="submit"
-              className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200"
-              disabled={loading}
-            >
-              {loading ? 'Ajout en cours...' : 'Ajouter'}
-            </button>
-          </div>
-        </form>
+                  <label className="block mb-2 font-medium">Code-barres</label>
+                  <Input
+                    name="barcode"
+                    value={formData.barcode}
+                    onChange={handleChange}
+                    placeholder="Code-barres"
+                    className="mb-3"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </div>
+
+        {/* Deuxième carte (Actions) */}
+        <div className="w-full xl:mt-0 xl:w-3/12">
+          <ScrollArea className="h-fit border rounded-lg">
+            <Card className="border-0">
+              <CardContent className="p-5">
+                <div className="flex flex-col gap-4">
+                  <Button
+                    onClick={handleSubmit}
+                    loading={loading}
+                    disabled={loading}
+                    className="w-full"
+                  >
+                    {t('common.create')}
+                  </Button>
+                  <Button
+                    onClick={handleReset}
+                    variant="secondary"
+                    className="w-full"
+                  >
+                    {t('common.reset')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

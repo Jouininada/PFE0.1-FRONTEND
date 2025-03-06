@@ -46,8 +46,16 @@ export const ExpenseInvoiceGeneralInformation = ({
   const mainInterlocutor = invoiceManager.firm?.interlocutorsToFirm?.find((entry) => entry?.isMain);
 
   const handleFilesChange = (files: File[]) => {
-    if (files.length > invoiceManager.uploadedFiles.length) {
-      const newFiles = files.filter(
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 Mo
+    const validFiles = files.filter((file) => file.size <= MAX_FILE_SIZE);
+  
+    if (validFiles.length !== files.length) {
+      alert('Certains fichiers dépassent la taille maximale autorisée (50 Mo).');
+    }
+  
+    // Ajouter uniquement les fichiers valides
+    if (validFiles.length > invoiceManager.uploadedFiles.length) {
+      const newFiles = validFiles.filter(
         (file) => !invoiceManager.uploadedFiles.some((uploadedFile) => uploadedFile.file === file)
       );
   
@@ -55,13 +63,13 @@ export const ExpenseInvoiceGeneralInformation = ({
         ...invoiceManager.uploadedFiles,
         ...newFiles.map((file) => ({
           file,
-          filePath: generateFilePathId(), // Génère filePath
-          uploadId: generateUploadId(),    // Génère uploadId (même si non utilisé ici)
+          filePath: generateFilePathId(),
+          uploadId: generateUploadId(),
         })),
       ]);
     } else {
       const updatedFiles = invoiceManager.uploadedFiles.filter((uploadedFile) =>
-        files.some((file) => file === uploadedFile.file)
+        validFiles.some((file) => file === uploadedFile.file)
       );
       invoiceManager.set('uploadedFiles', updatedFiles);
     }
