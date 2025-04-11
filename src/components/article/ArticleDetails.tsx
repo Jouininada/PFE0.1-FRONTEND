@@ -1,15 +1,206 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
+import { toast } from 'sonner';
 import { api, article } from '@/api';
-import { Article, UpdateArticleDto } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Article, ArticleCompareResponseDto, UpdateArticleDto } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/common/Spinner';
-import { Edit, Save, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Edit, Save, X, FileText, Image } from 'lucide-react';
+
+const CompareModal: React.FC<{
+  file: File;
+  fileType: 'image' | 'pdf';
+  articleData: Article;
+  onClose: () => void;
+  open: boolean;
+}> = ({ file, fileType, articleData, onClose, open }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [fileContent, setFileContent] = useState<string>('');
+  const [filePreview, setFilePreview] = useState<string>('');
+  const [comparisonResult, setComparisonResult] = useState<ArticleCompareResponseDto | null>(null);
+  const contentEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!file) return;
+    
+    if (fileType === 'image') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setFilePreview(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview('/pdf-icon.png');
+    }
+  }, [file, fileType]);
+
+  useEffect(() => {
+    contentEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [fileContent]);
+
+  const compareData = async () => {
+    try {
+      setIsProcessing(true);
+      setFileContent('');
+      setComparisonResult(null);
+      
+      const simulateTyping = async (text: string) => {
+        for (let i = 0; i < text.length; i++) {
+          setFileContent(prev => prev + text[i]);
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
+      };
+
+      await simulateTyping(`Début de la comparaison avec ${fileType === 'image' ? 'une image' : 'un PDF'}...\n\n`);
+
+      const response = fileType === 'image' 
+        ? await article.compareWithImage(articleData.id, file)
+        : await article.compareWithPdf(articleData.id, file);
+      
+      setComparisonResult(response);
+
+      await simulateTyping(`Résultats de la comparaison :\n\n`);
+      
+      // Affichage des différences pour chaque champ
+      await simulateTyping(`Titre:\n`);
+      await simulateTyping(`- Article: ${articleData.title}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.title || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.titleMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Description:\n`);
+      await simulateTyping(`- Article: ${articleData.description}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.description || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.descriptionMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Catégorie:\n`);
+      await simulateTyping(`- Article: ${articleData.category}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.category || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.categoryMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Sous-catégorie:\n`);
+      await simulateTyping(`- Article: ${articleData.subCategory}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.subCategory || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.subCategoryMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Prix d'achat:\n`);
+      await simulateTyping(`- Article: ${articleData.purchasePrice}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.purchasePrice || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.purchasePriceMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Prix de vente:\n`);
+      await simulateTyping(`- Article: ${articleData.salePrice}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.salePrice || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.salePriceMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      await simulateTyping(`Quantité en stock:\n`);
+      await simulateTyping(`- Article: ${articleData.quantityInStock}\n`);
+      await simulateTyping(`- ${fileType === 'image' ? 'Image' : 'PDF'}: ${response.extractedData?.quantityInStock || 'Non trouvé'}\n`);
+      await simulateTyping(`→ ${response.quantityInStockMatch ? '✓ Correspond' : '✗ Différent'}\n\n`);
+      
+      if (response.differences && response.differences.length > 0) {
+        await simulateTyping(`Détails des différences :\n`);
+        for (const diff of response.differences) {
+          await simulateTyping(`- ${diff.field}:\n`);
+          await simulateTyping(`  Article: ${diff.expected}\n`);
+          await simulateTyping(`  ${fileType === 'image' ? 'Image' : 'PDF'}: ${diff.actual}\n\n`);
+        }
+      }
+      
+      await simulateTyping(`Comparaison terminée.\n`);
+      
+    } catch (error) {
+      console.error('Erreur de comparaison:', error);
+      setFileContent('Erreur lors de la comparaison');
+      toast.error('Erreur lors de la comparaison');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()} className="max-w-6xl">
+      <DialogContent className="max-w-[90vw] h-[80vh] flex p-0">
+        <div className="flex-1 flex flex-col p-6 border-r">
+          <DialogHeader className="mb-4">
+            <DialogTitle>
+              {fileType === 'image' ? 'Aperçu de l\'image' : 'Aperçu du PDF'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+            {filePreview ? (
+              fileType === 'image' ? (
+                <img 
+                  src={filePreview} 
+                  alt="Fichier uploadé" 
+                  className="max-h-full max-w-full object-contain"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-4">
+                  <img 
+                    src={filePreview} 
+                    alt="PDF icon" 
+                    className="h-32 w-32 object-contain mb-4"
+                  />
+                  <p className="text-center font-medium">{file.name}</p>
+                </div>
+              )
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <Spinner size="medium" show={true} />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-2 justify-end mt-4">
+            <Button 
+              onClick={compareData} 
+              disabled={isProcessing}
+              className="min-w-32"
+            >
+              {isProcessing ? (
+                <>
+                  <Spinner size="small" show={true} className="mr-2" />
+                  Traitement...
+                </>
+              ) : (
+                'Comparer'
+              )}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+            >
+              Annuler
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1 flex flex-col p-6">
+          <DialogHeader className="mb-4">
+            <DialogTitle>Résultats de la comparaison</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 bg-gray-50 rounded-lg p-4 overflow-y-auto whitespace-pre-wrap font-mono">
+            {fileContent || (
+              <div className="text-gray-400 italic">
+                {isProcessing ? 'Comparaison en cours...' : 'Aucune donnée à afficher'}
+              </div>
+            )}
+            <div ref={contentEndRef} />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const ArticleDetails: React.FC = () => {
   const router = useRouter();
@@ -26,10 +217,12 @@ const ArticleDetails: React.FC = () => {
     purchasePrice: 0,
     salePrice: 0,
     quantityInStock: 0,
-    status: '',
+    status: 'active',
   });
+  const [compareModalOpen, setCompareModalOpen] = useState(false);
+  const [compareFile, setCompareFile] = useState<File | null>(null);
+  const [compareFileType, setCompareFileType] = useState<'image' | 'pdf'>('image');
 
-  // Fetch article details
   useEffect(() => {
     if (!id) return;
 
@@ -58,22 +251,19 @@ const ArticleDetails: React.FC = () => {
     fetchArticleDetails();
   }, [id]);
 
-  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: name === 'purchasePrice' || name === 'salePrice' || name === 'quantityInStock'
-        ? Number(value) // Convertir en nombre pour les champs numériques
+        ? Number(value)
         : value,
     }));
   };
 
-  // Toggle edit mode
   const toggleEditMode = () => {
     setIsEditing((prev) => !prev);
     if (isEditing) {
-      // Reset form data to original article details when canceling edit mode
       setFormData({
         title: articleDetails?.title || '',
         description: articleDetails?.description || '',
@@ -82,18 +272,14 @@ const ArticleDetails: React.FC = () => {
         purchasePrice: articleDetails?.purchasePrice || 0,
         salePrice: articleDetails?.salePrice || 0,
         quantityInStock: articleDetails?.quantityInStock || 0,
-        status: articleDetails?.status || '',
+        status: articleDetails?.status || 'active',
       });
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log('Données envoyées:', formData); // Afficher les données dans la console
-
-      // Convertir les champs numériques en nombres
       const payload = {
         ...formData,
         purchasePrice: Number(formData.purchasePrice),
@@ -101,10 +287,7 @@ const ArticleDetails: React.FC = () => {
         quantityInStock: Number(formData.quantityInStock),
       };
 
-      // Appeler l'API pour mettre à jour l'article
       const updatedArticle = await api.article.update(Number(id), payload);
-
-      // Mettre à jour l'état local avec les nouvelles données
       setArticleDetails(updatedArticle);
       setFormData({
         title: updatedArticle.title,
@@ -116,11 +299,7 @@ const ArticleDetails: React.FC = () => {
         quantityInStock: updatedArticle.quantityInStock,
         status: updatedArticle.status,
       });
-
-      // Désactiver le mode édition
       setIsEditing(false);
-
-      // Afficher un message de succès
       toast.success('Article mis à jour avec succès');
     } catch (error) {
       console.error('Erreur lors de la mise à jour de l\'article:', error);
@@ -128,36 +307,94 @@ const ArticleDetails: React.FC = () => {
     }
   };
 
-  // Display loading spinner
+  const handleCompareWithImage = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setCompareFile(file);
+        setCompareFileType('image');
+        setCompareModalOpen(true);
+      }
+    };
+    input.click();
+  };
+
+  const handleCompareWithPdf = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setCompareFile(file);
+        setCompareFileType('pdf');
+        setCompareModalOpen(true);
+      }
+    };
+    input.click();
+  };
+
   if (loading) return <Spinner size="medium" show={loading} />;
-
-  // Display error message
   if (error) return <p className="text-red-500">{error}</p>;
-
-  // Display message if no article is found
   if (!articleDetails) return <p>Aucun article trouvé.</p>;
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-sm">
+      {compareModalOpen && compareFile && articleDetails && (
+        <CompareModal
+          file={compareFile}
+          fileType={compareFileType}
+          articleData={articleDetails}
+          onClose={() => {
+            setCompareModalOpen(false);
+            setCompareFile(null);
+          }}
+          open={compareModalOpen}
+        />
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Détails de l'article</h1>
-        <Button
-          variant={isEditing ? 'secondary' : 'default'}
-          onClick={toggleEditMode}
-          className="flex items-center gap-2"
-        >
-          {isEditing ? (
-            <>
-              <X className="h-4 w-4" />
-              Annuler
-            </>
-          ) : (
-            <>
-              <Edit className="h-4 w-4" />
-              Modifier
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleCompareWithPdf}
+          >
+            <FileText className="h-4 w-4" />
+            Comparer avec PDF
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleCompareWithImage}
+          >
+            <Image className="h-4 w-4" />
+            Comparer avec Image
+          </Button>
+
+          <Button
+            variant={isEditing ? 'secondary' : 'default'}
+            onClick={toggleEditMode}
+            className="flex items-center gap-2"
+          >
+            {isEditing ? (
+              <>
+                <X className="h-4 w-4" />
+                Annuler
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4" />
+                Modifier
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -242,6 +479,17 @@ const ArticleDetails: React.FC = () => {
                     name="quantityInStock"
                     type="number"
                     value={formData.quantityInStock}
+                    onChange={handleInputChange}
+                    readOnly={!isEditing}
+                    className={!isEditing ? 'bg-gray-100' : ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Statut</Label>
+                  <Input
+                    id="status"
+                    name="status"
+                    value={formData.status}
                     onChange={handleInputChange}
                     readOnly={!isEditing}
                     className={!isEditing ? 'bg-gray-100' : ''}

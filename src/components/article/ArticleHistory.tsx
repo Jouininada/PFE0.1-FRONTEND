@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { BreadcrumbCommon } from '../common';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from './data-table/data-table';
+import { api } from '@/api';
 
 interface ArticleHistoryListProps {
   articleId: number;
@@ -28,14 +29,12 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mise à jour des breadcrumbs
     setRoutes([
       { title: 'menu.inventory', href: '/inventory' },
       { title: 'submenu.articles', href: '/inventory/articles' },
     ]);
   }, [router.locale]);
 
-  // Récupérer l'historique de l'article
   const fetchArticleHistory = async () => {
     try {
       const data = await articleHistory.getArticleHistory(articleId);
@@ -49,12 +48,9 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
     }
   };
 
-
-
-  // Télécharger le PDF pour une version spécifique
   const handleDownloadPdf = async (articleId: number, version: number) => {
     try {
-      await articleHistory.downloadPdf(articleId, version); // Utilisez la fonction du service
+      await articleHistory.downloadPdf(articleId, version);
       toast.success(tArticleHistory('pdf_downloaded'));
     } catch (err) {
       console.error("Erreur lors du téléchargement du PDF:", err);
@@ -62,11 +58,27 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
     }
   };
 
+  const handleRestoreVersion = async (version: number) => {
+    const confirm = window.confirm(
+      tArticleHistory('confirm_restore', { version })
+    );
+    
+    if (!confirm) return;
+
+    try {
+      await api.article.restoreVersion(articleId, version); // Utilisation modifiée
+      toast.success(tArticleHistory('version_restored'));
+      await fetchArticleHistory();
+    } catch (err) {
+      console.error("Erreur lors de la restauration:", err);
+      toast.error(tArticleHistory('error_restoring'));
+    }
+  };
+
   useEffect(() => {
     fetchArticleHistory();
   }, [articleId]);
 
-  // Définition des colonnes du tableau
   const columns: ColumnDef<ResponseArticleHistoryDto>[] = [
     {
       accessorKey: 'version',
@@ -104,13 +116,20 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
       id: 'actions',
       header: tCommon('actions'),
       cell: ({ row }) => (
-        <div className="flex space-x-1">
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => handleRestoreVersion(row.original.version)}
+            variant="default"
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {tArticleHistory('restore_version')}
+          </Button>
           
           <Button
-            onClick={() => handleDownloadPdf(row.original.articleId, row.original.version)} // Télécharger le PDF
+            onClick={() => handleDownloadPdf(row.original.articleId, row.original.version)}
             variant="outline"
             size="sm"
-            className="h-8 px-2"
           >
             {tArticleHistory('download_pdf')}
           </Button>
@@ -119,7 +138,6 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
     },
   ];
 
-  // Affichage du spinner pendant le chargement
   if (loading) {
     return (
       <div className="text-center text-gray-600 p-4">
@@ -128,7 +146,6 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
     );
   }
 
-  // Affichage des erreurs
   if (error) {
     return (
       <div className="text-center text-red-500 p-4">
@@ -137,7 +154,6 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
     );
   }
 
-  // Affichage si aucun historique n'est trouvé
   if (history.length === 0) {
     return (
       <div className="text-center text-gray-600 p-4">
@@ -148,7 +164,6 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
 
   return (
     <div className="space-y-2 p-4">
-      {/* En-tête de la page */}
       <PageHeader
         title={tArticleHistory('title')}
         description={tArticleHistory('description')}
@@ -156,10 +171,8 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
         className="mb-2"
       />
 
-      {/* Fil d'Ariane */}
       <BreadcrumbCommon className="mb-2" />
 
-      {/* Carte contenant le tableau */}
       <Card>
         <CardHeader className="p-2">
           <CardTitle className="text-lg">{tArticleHistory('title')}</CardTitle>
@@ -168,7 +181,6 @@ const ArticleHistoryList: React.FC<ArticleHistoryListProps> = ({ articleId }) =>
           </CardDescription>
         </CardHeader>
         <CardContent className="p-2">
-          {/* Tableau des historiques */}
           <DataTable
             data={history}
             columns={columns}
