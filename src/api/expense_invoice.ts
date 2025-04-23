@@ -293,6 +293,91 @@ const updateInvoiceStatusIfExpired = async (invoiceId: number): Promise<ExpenseI
 };
 
 
+// Statistiques financières
+const getFinancialStats = async (firmId: number): Promise<any> => {
+  try {
+    const response = await axios.get(`public/expenseinvoice/stats/financial?firmId=${firmId}`);
+    
+    // Validation de la réponse
+    if (!response.data || typeof response.data.totalExpenses === 'undefined') {
+      throw new Error('Invalid response format');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching financial stats:', error);
+    return { 
+      error: 'Failed to load financial stats',
+      totalExpenses: 0,
+      paidVsUnpaid: { paid: 0, unpaid: 0 },
+      currencyDistribution: {},
+      averageInvoiceAmount: 0
+    };
+  }
+};
+
+// Statistiques des remises et taxes
+const getDiscountsTaxesStats = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/stats/discounts-taxes?firmId=${firmId}`);
+  return response.data;
+};
+
+// Statistiques des articles
+const getArticlesStats = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/stats/articles?firmId=${firmId}`);
+  return response.data;
+};
+
+// Statistiques diverses
+const getMiscStats = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/stats/misc?firmId=${firmId}`);
+  return response.data;
+};
+
+// Récapitulatif des factures
+const getInvoiceSummary = async (firmId: number, year?: number): Promise<any> => {
+  const url = year 
+    ? `public/expenseinvoice/summary?firmId=${firmId}&year=${year}`
+    : `public/expenseinvoice/summary?firmId=${firmId}`;
+  const response = await axios.get(url);
+  return response.data;
+};
+
+// Distribution des statuts
+const getStatusDistribution = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/status-distribution?firmId=${firmId}`);
+  return response.data;
+};
+
+// Tendances mensuelles
+const getMonthlyTrends = async (firmId: number, year?: number): Promise<any> => {
+  const url = year 
+    ? `public/expenseinvoice/monthly-trends?firmId=${firmId}&year=${year}`
+    : `public/expenseinvoice/monthly-trends?firmId=${firmId}`;
+  const response = await axios.get(url);
+  return response.data;
+};
+
+// Top interlocuteurs
+const getTopInterlocutors = async (firmId: number, limit: number = 5): Promise<any> => {
+  const response = await axios.get(
+    `public/expenseinvoice/top-interlocutors?firmId=${firmId}&limit=${limit}`
+  );
+  return response.data;
+};
+
+// Analyse des paiements
+const getPaymentAnalysis = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/payment-analysis?firmId=${firmId}`);
+  return response.data;
+};
+
+// Récapitulatif annuel
+const getYearlySummary = async (firmId: number): Promise<any> => {
+  const response = await axios.get(`public/expenseinvoice/yearly-summary?firmId=${firmId}`);
+  return response.data;
+};
+
 export const expense_invoice = {
   factory,
   findPaginated,
@@ -303,5 +388,15 @@ export const expense_invoice = {
   remove,
   validate,
   deletePdfFile,
-  updateInvoiceStatusIfExpired
+  updateInvoiceStatusIfExpired,
+  getFinancialStats,
+  getDiscountsTaxesStats,
+  getArticlesStats,
+  getMiscStats,
+  getInvoiceSummary,
+  getStatusDistribution,
+  getMonthlyTrends,
+  getTopInterlocutors,
+  getPaymentAnalysis,
+  getYearlySummary
 };

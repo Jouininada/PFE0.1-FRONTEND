@@ -121,10 +121,10 @@ const ArticleList: React.FC = () => {
       <div className="p-6 bg-white rounded-lg shadow-sm">
         {/* En-tête de la section */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">{t('article.plural')}</h1>
+          <h1 className="text-2xl font-semibold">{t('Liste des articles')}</h1>
           <Button className="flex items-center gap-2" onClick={() => router.push('/article/create-article')}>
             <Plus className="h-4 w-4" />
-            {t('article.new_article')}
+            {t('Ajouter un article')}
           </Button>
         </div>
 
@@ -132,13 +132,13 @@ const ArticleList: React.FC = () => {
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1">
             <Input
-              placeholder={t('article.filter_placeholder')}
+              placeholder={t('Rechercher un article..')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Button variant="outline">{t('article.filter')}</Button>
+          <Button variant="outline">{t('Rechercher')}</Button>
         </div>
 
         {/* Tableau des articles */}
@@ -151,7 +151,7 @@ const ArticleList: React.FC = () => {
         {/* Pagination avec flèches, numérotation et sélecteur de lignes par page */}
         <div className="flex justify-between items-center mt-6">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{t('article.lines_per_page')}</span>
+            <span className="text-sm text-muted-foreground">{t('Lignes par page')}</span>
             <Select
               value={size.toString()}
               onValueChange={(value) => setSize(Number(value))}
@@ -178,7 +178,7 @@ const ArticleList: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="text-sm text-muted-foreground">
-              {t('article.page')} {page} {t('article.of')} {articlesResp?.meta?.pageCount || 1}
+              {t('Page')} {page} {t('sur')} {articlesResp?.meta?.pageCount || 1}
             </div>
             <Button
               variant="outline"

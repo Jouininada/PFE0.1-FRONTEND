@@ -11,14 +11,14 @@ export const getArticleColumns = (
   {
     accessorKey: 'title',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('article.attributes.title')} />
+      <DataTableColumnHeader column={column} title={t('Titre')} />
     ),
     cell: ({ row }) => <div>{row.original.title}</div>,
   },
   {
     accessorKey: 'description',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title={t('article.attributes.description')} />
+      <DataTableColumnHeader column={column} title={t('Description')} />
     ),
     cell: ({ row }) => <div className="truncate max-w-xs">{row.original.description}</div>,
   },
